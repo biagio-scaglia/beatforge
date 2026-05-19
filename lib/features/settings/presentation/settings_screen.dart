@@ -56,9 +56,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           size: 32,
                         ),
                         const SizedBox(width: AppTokens.spacingMd),
-                        Text(
-                          'Impostazioni Audio & Video',
-                          style: Theme.of(context).textTheme.titleLarge,
+                        Expanded(
+                          child: Text(
+                            'Impostazioni Audio & Video',
+                            style: Theme.of(context).textTheme.titleLarge,
+                          ),
                         ),
                       ],
                     ),
@@ -71,15 +73,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              'Latenza Audio (Offset)',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
-                                  ?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                            Expanded(
+                              child: Text(
+                                'Latenza Audio (Offset)',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyLarge
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
                             ),
+                            const SizedBox(width: AppTokens.spacingMd),
                             Text(
                               '${_latency.toInt()} ms',
                               style: Theme.of(context)
