@@ -99,9 +99,11 @@ class AppTheme {
         indicatorColor: Colors.transparent,
       ),
 
+      splashFactory: InkSparkle.splashFactory,
+
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: surface,
-        indicatorColor: primaryCyan.withOpacity(0.15),
+        indicatorColor: primaryCyan.withValues(alpha: 0.15),
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.selected)) {
             return GoogleFonts.orbitron(

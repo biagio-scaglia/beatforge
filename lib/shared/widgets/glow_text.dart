@@ -49,9 +49,12 @@ class GlowText extends StatelessWidget {
       overflow: overflow,
       style: defaultStyle.copyWith(
         shadows: [
-          Shadow(color: glowColor.withOpacity(0.8), blurRadius: glowRadius),
           Shadow(
-            color: glowColor.withOpacity(0.5),
+            color: glowColor.withValues(alpha: 0.8),
+            blurRadius: glowRadius,
+          ),
+          Shadow(
+            color: glowColor.withValues(alpha: 0.5),
             blurRadius: glowRadius * 2.0,
           ),
         ],

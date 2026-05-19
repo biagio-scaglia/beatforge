@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../theme/app_tokens.dart';
+import 'tactile_feedback.dart';
 
 /// Una scheda in stile arcade con bordature animate ed effetti di luce neon.
 ///
-/// Risponde agli eventi di hover del mouse (su desktop e web) amplificando
-/// l'intensità del bagliore e lo spessore del bordo.
+/// Risponde agli eventi di hover del mouse (su desktop e web), focus da tastiera
+/// (accessibilità) e tap (micro-animazioni e vibrazione aptica tramite [TactileFeedback]).
 class NeonCard extends StatefulWidget {
   /// Il contenuto interno della scheda.
   final Widget child;
 
-  /// Callback attivata al tocco. Se nullo, l'effetto clic è disattivato.
+  /// Callback attivata al tocco. Se nullo, l'effetto clic e le animazioni tattili sono disattivate.
   final VoidCallback? onTap;
 
   /// Il colore principale del bagliore neon.
@@ -27,7 +29,7 @@ class NeonCard extends StatefulWidget {
   /// Spaziatura interna della scheda (default: 20.0).
   final EdgeInsetsGeometry padding;
 
-  /// Stato di attivazione forzato. Se vero, mantiene attivo l'effetto neon anche senza hover.
+  /// Stato di attivazione forzato. Se vero, mantiene attivo l'effetto neon anche senza hover/focus.
   final bool isActive;
 
   const NeonCard({
@@ -46,62 +48,78 @@ class NeonCard extends StatefulWidget {
   State<NeonCard> createState() => _NeonCardState();
 }
 
-class _NeonCardState extends State<NeonCard>
-    with SingleTickerProviderStateMixin {
+class _NeonCardState extends State<NeonCard> {
   bool _isHovered = false;
+  bool _isFocused = false;
 
   @override
   Widget build(BuildContext context) {
-    final bool highlighted = _isHovered || widget.isActive;
+    final bool highlighted = _isHovered || _isFocused || widget.isActive;
 
-    // Configura i colori del bordo in base allo stato di attivazione/hover
-    final Color borderCol =
-        widget.borderColor ??
+    // Configura i colori del bordo in base allo stato di attivazione/hover/focus
+    final Color borderCol = widget.borderColor ??
         (highlighted ? widget.glowColor : AppTheme.borderSubtle);
 
     final double activeGlowRadius = highlighted ? widget.glowRadius : 0.0;
 
-    return MouseRegion(
+    Widget cardWidget = MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       cursor: widget.onTap != null
           ? SystemMouseCursors.click
           : SystemMouseCursors.basic,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOutCubic,
+        duration: AppTokens.durationNormal,
+        curve: AppTokens.curveInteractive,
         margin: widget.margin,
         decoration: BoxDecoration(
           color: AppTheme.surface,
-          borderRadius: BorderRadius.circular(16.0),
-          border: Border.all(color: borderCol, width: highlighted ? 1.5 : 1.0),
+          borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+          border: Border.all(
+            color: borderCol,
+            width: highlighted ? 1.5 : 1.0,
+          ),
           boxShadow: [
             if (highlighted && activeGlowRadius > 0) ...[
               BoxShadow(
-                color: widget.glowColor.withOpacity(0.25),
+                color: widget.glowColor.withValues(alpha: 0.25),
                 blurRadius: activeGlowRadius,
                 spreadRadius: 1.0,
               ),
               BoxShadow(
-                color: widget.glowColor.withOpacity(0.1),
+                color: widget.glowColor.withValues(alpha: 0.10),
                 blurRadius: activeGlowRadius * 2.0,
                 spreadRadius: 0.0,
               ),
-            ],
+            ]
           ],
         ),
         child: Material(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(16.0),
+          borderRadius: BorderRadius.circular(AppTokens.radiusLg),
           child: InkWell(
             onTap: widget.onTap,
-            borderRadius: BorderRadius.circular(16.0),
-            splashColor: widget.glowColor.withOpacity(0.08),
-            highlightColor: widget.glowColor.withOpacity(0.04),
-            child: Padding(padding: widget.padding, child: widget.child),
+            onFocusChange: (focused) => setState(() => _isFocused = focused),
+            borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+            splashColor: widget.glowColor.withValues(alpha: 0.08),
+            highlightColor: widget.glowColor.withValues(alpha: 0.04),
+            child: Padding(
+              padding: widget.padding,
+              child: widget.child,
+            ),
           ),
         ),
       ),
     );
+
+    // Se la card è interattiva (onTap != null), la avvolgiamo nel feedback tattile
+    if (widget.onTap != null) {
+      cardWidget = TactileFeedback(
+        onTap: widget.onTap,
+        child: cardWidget,
+      );
+    }
+
+    return cardWidget;
   }
 }
