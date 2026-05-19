@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../home/presentation/home_screen.dart';
 import '../../library/presentation/library_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
 import '../../../shared/theme/app_theme.dart';
+import '../../../shared/theme/app_tokens.dart';
 
 /// L'involucro di navigazione principale dell'applicazione.
 ///
-/// Adatta il proprio layout in base alla larghezza dello schermo:
-/// - Schermi piccoli (< 600dp): Barra di navigazione inferiore ([NavigationBar]).
-/// - Schermi medio-grandi (>= 600dp): Barra di navigazione laterale ([NavigationRail]).
+/// Adatta il proprio layout in base alla larghezza dello schermo usando i [AppTokens]:
+/// - Schermi piccoli: Barra di navigazione inferiore ([NavigationBar]).
+/// - Schermi medio-grandi: Barra di navigazione laterale ([NavigationRail]).
 ///
-/// Mantiene sincronizzato lo stato dell'indice della scheda attiva durante il ridimensionamento.
+/// Implementa transizioni a dissolvenza incrociata tra i pannelli ed attiva il
+/// feedback aptico di selezione discreta ad ogni cambio scheda.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -22,14 +25,16 @@ class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
 
   void _onTabSelected(int index) {
+    if (_currentIndex == index) return;
     setState(() {
       _currentIndex = index;
     });
+    // Esegue una vibrazione aptica breve per segnalare visivamente e fisicamente il tocco del tab
+    HapticFeedback.selectionClick();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Definizione dei widget associati alle schede di navigazione
     final List<Widget> screens = [
       HomeScreen(onNavigateToLibrary: () => _onTabSelected(1)),
       const LibraryScreen(),
@@ -38,12 +43,28 @@ class _AppShellState extends State<AppShell> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final bool isMobile = constraints.maxWidth < 600;
+        // Breakpoint adattivo basato su token centralizzati
+        final bool isMobile =
+            constraints.maxWidth < AppTokens.breakpointMobileWide;
+
+        // Visualizzazione della schermata attiva animata
+        final Widget currentScreenAnimated = AnimatedSwitcher(
+          duration: AppTokens.durationNormal,
+          switchInCurve: AppTokens.curveInteractive,
+          switchOutCurve: AppTokens.curveDecelerate,
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          child: KeyedSubtree(
+            key: ValueKey<int>(_currentIndex),
+            child: screens[_currentIndex],
+          ),
+        );
 
         if (isMobile) {
           return Scaffold(
             body: SafeArea(
-              child: IndexedStack(index: _currentIndex, children: screens),
+              child: currentScreenAnimated,
             ),
             bottomNavigationBar: NavigationBar(
               selectedIndex: _currentIndex,
@@ -85,12 +106,11 @@ class _AppShellState extends State<AppShell> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: AppTheme.primaryCyan,
-                              width: 2,
-                            ),
+                                color: AppTheme.primaryCyan, width: 2),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.primaryCyan.withOpacity(0.3),
+                                color: AppTheme.primaryCyan
+                                    .withValues(alpha: 0.3),
                                 blurRadius: 8,
                                 spreadRadius: 1,
                               ),
@@ -105,7 +125,9 @@ class _AppShellState extends State<AppShell> {
                         const SizedBox(height: 8),
                         Text(
                           'BF',
-                          style: Theme.of(context).textTheme.labelLarge
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelLarge
                               ?.copyWith(
                                 color: AppTheme.primaryCyan,
                                 fontSize: 12,
@@ -133,16 +155,10 @@ class _AppShellState extends State<AppShell> {
                   ],
                 ),
                 const VerticalDivider(
-                  thickness: 1,
-                  width: 1,
-                  color: AppTheme.borderSubtle,
-                ),
+                    thickness: 1, width: 1, color: AppTheme.borderSubtle),
                 Expanded(
                   child: SafeArea(
-                    child: IndexedStack(
-                      index: _currentIndex,
-                      children: screens,
-                    ),
+                    child: currentScreenAnimated,
                   ),
                 ),
               ],
