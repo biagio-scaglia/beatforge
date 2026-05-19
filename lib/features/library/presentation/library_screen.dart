@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/glow_text.dart';
-import '../../../core/widgets/neon_card.dart';
+import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/glow_text.dart';
+import '../../../shared/widgets/neon_card.dart';
 
+/// La schermata per la gestione della libreria musicale dei beatmap locali.
+///
+/// Permette l'esplorazione dei file e delle configurazioni delle note salvate
+/// all'interno del database locale Drift/SQLite.
 class LibraryScreen extends StatelessWidget {
   const LibraryScreen({super.key});
 
@@ -19,9 +23,9 @@ class LibraryScreen extends StatelessWidget {
               GlowText(
                 'LIBRERIA',
                 glowColor: AppTheme.primaryCyan,
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: AppTheme.primaryCyan,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.displaySmall?.copyWith(color: AppTheme.primaryCyan),
               ),
               const SizedBox(height: 8),
               Text(
@@ -36,7 +40,7 @@ class LibraryScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.queue_music_rounded,
                           color: AppTheme.primaryCyan,
                           size: 32,

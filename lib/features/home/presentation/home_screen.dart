@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/glow_text.dart';
-import '../../../core/widgets/neon_card.dart';
+import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/glow_text.dart';
+import '../../../shared/widgets/neon_card.dart';
 
+/// La schermata principale (Home) di BeatForge.
+///
+/// Presenta il titolo con effetto neon e le opzioni principali organizzate
+/// in una griglia responsive che si adatta orizzontalmente o verticalmente
+/// in base allo spazio disponibile.
 class HomeScreen extends StatelessWidget {
+  /// Callback attivata quando l'utente sceglie di aprire la libreria musicale.
   final VoidCallback onNavigateToLibrary;
 
-  const HomeScreen({
-    super.key,
-    required this.onNavigateToLibrary,
-  });
+  const HomeScreen({super.key, required this.onNavigateToLibrary});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +25,6 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 24),
-              // Glowing Title
               GlowText(
                 'BEATFORGE',
                 glowColor: AppTheme.primaryCyan,
@@ -33,7 +35,6 @@ class HomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              // Subtitle
               Text(
                 'Crea e gioca mappe rhythm in locale',
                 textAlign: TextAlign.center,
@@ -44,18 +45,17 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 48),
 
-              // Layout adaptive: Row for large screens, Column for mobile
+              // Layout adattivo per le card principali di interazione
               LayoutBuilder(
                 builder: (context, constraints) {
                   final bool isWide = constraints.maxWidth > 550;
-                  
+
                   final List<Widget> cardList = [
                     Expanded(
                       flex: isWide ? 1 : 0,
                       child: NeonCard(
                         glowColor: AppTheme.primaryCyan,
                         onTap: () {
-                          // Placeholder for Avvia Sessione
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               backgroundColor: AppTheme.surfaceElevated,
@@ -63,7 +63,9 @@ class HomeScreen extends StatelessWidget {
                                 'Gameplay non ancora implementato in questo step.',
                                 style: TextStyle(
                                   color: AppTheme.primaryCyan,
-                                  fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+                                  fontFamily: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.fontFamily,
                                 ),
                               ),
                             ),
@@ -89,9 +91,8 @@ class HomeScreen extends StatelessWidget {
                             const SizedBox(height: 24),
                             Text(
                               'AVVIA SESSIONE',
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: AppTheme.primaryCyan,
-                              ),
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(color: AppTheme.primaryCyan),
                             ),
                             const SizedBox(height: 12),
                             Text(
@@ -119,7 +120,9 @@ class HomeScreen extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: AppTheme.secondaryMagenta.withOpacity(0.08),
+                                color: AppTheme.secondaryMagenta.withOpacity(
+                                  0.08,
+                                ),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -131,9 +134,8 @@ class HomeScreen extends StatelessWidget {
                             const SizedBox(height: 24),
                             Text(
                               'APRI LIBRERIA',
-                              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                color: AppTheme.secondaryMagenta,
-                              ),
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(color: AppTheme.secondaryMagenta),
                             ),
                             const SizedBox(height: 12),
                             Text(
@@ -148,6 +150,8 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ];
 
+                  // IntrinsicHeight è necessario in modalità orizzontale (isWide) per costringere
+                  // le schede ad assumere la stessa altezza naturale calcolata dal contenuto più grande.
                   return isWide
                       ? IntrinsicHeight(
                           child: Row(
@@ -157,7 +161,7 @@ class HomeScreen extends StatelessWidget {
                         )
                       : Column(
                           children: cardList.map((w) {
-                            if (w is Expanded) return w.child; // Unpack Expanded for Column layout
+                            if (w is Expanded) return w.child;
                             return w;
                           }).toList(),
                         );
@@ -166,10 +170,13 @@ class HomeScreen extends StatelessWidget {
 
               const SizedBox(height: 40),
 
-              // Small Status Card indicating Offline/Local-only database setup
+              // Scheda informativa che indica che l'applicazione è in esecuzione in locale offline
               NeonCard(
                 glowColor: AppTheme.tertiaryYellow,
-                padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20.0,
+                  vertical: 16.0,
+                ),
                 child: Row(
                   children: [
                     const Icon(
@@ -184,19 +191,20 @@ class HomeScreen extends StatelessWidget {
                         children: [
                           Text(
                             'MODALITÀ LOCALE ATTIVA',
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.tertiaryYellow,
-                              fontSize: 13,
-                              letterSpacing: 0.5,
-                            ),
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.tertiaryYellow,
+                                  fontSize: 13,
+                                  letterSpacing: 0.5,
+                                ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             'Nessun server esterno. I dati e i punteggi salvati rimarranno al sicuro sul tuo dispositivo.',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              fontSize: 12,
-                            ),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.copyWith(fontSize: 12),
                           ),
                         ],
                       ),

@@ -2,8 +2,15 @@ import 'package:flutter/material.dart';
 import '../../home/presentation/home_screen.dart';
 import '../../library/presentation/library_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
-import '../../../core/theme/app_theme.dart';
+import '../../../shared/theme/app_theme.dart';
 
+/// L'involucro di navigazione principale dell'applicazione.
+///
+/// Adatta il proprio layout in base alla larghezza dello schermo:
+/// - Schermi piccoli (< 600dp): Barra di navigazione inferiore ([NavigationBar]).
+/// - Schermi medio-grandi (>= 600dp): Barra di navigazione laterale ([NavigationRail]).
+///
+/// Mantiene sincronizzato lo stato dell'indice della scheda attiva durante il ridimensionamento.
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
 
@@ -22,6 +29,7 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
+    // Definizione dei widget associati alle schede di navigazione
     final List<Widget> screens = [
       HomeScreen(onNavigateToLibrary: () => _onTabSelected(1)),
       const LibraryScreen(),
@@ -35,10 +43,7 @@ class _AppShellState extends State<AppShell> {
         if (isMobile) {
           return Scaffold(
             body: SafeArea(
-              child: IndexedStack(
-                index: _currentIndex,
-                children: screens,
-              ),
+              child: IndexedStack(index: _currentIndex, children: screens),
             ),
             bottomNavigationBar: NavigationBar(
               selectedIndex: _currentIndex,
@@ -79,7 +84,10 @@ class _AppShellState extends State<AppShell> {
                           height: 48,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppTheme.primaryCyan, width: 2),
+                            border: Border.all(
+                              color: AppTheme.primaryCyan,
+                              width: 2,
+                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: AppTheme.primaryCyan.withOpacity(0.3),
@@ -97,10 +105,11 @@ class _AppShellState extends State<AppShell> {
                         const SizedBox(height: 8),
                         Text(
                           'BF',
-                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: AppTheme.primaryCyan,
-                            fontSize: 12,
-                          ),
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(
+                                color: AppTheme.primaryCyan,
+                                fontSize: 12,
+                              ),
                         ),
                       ],
                     ),
@@ -123,7 +132,11 @@ class _AppShellState extends State<AppShell> {
                     ),
                   ],
                 ),
-                const VerticalDivider(thickness: 1, width: 1, color: AppTheme.borderSubtle),
+                const VerticalDivider(
+                  thickness: 1,
+                  width: 1,
+                  color: AppTheme.borderSubtle,
+                ),
                 Expanded(
                   child: SafeArea(
                     child: IndexedStack(

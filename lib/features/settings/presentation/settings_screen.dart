@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/widgets/glow_text.dart';
-import '../../../core/widgets/neon_card.dart';
+import '../../../shared/theme/app_theme.dart';
+import '../../../shared/widgets/glow_text.dart';
+import '../../../shared/widgets/neon_card.dart';
 
+/// La schermata delle opzioni e impostazioni di BeatForge.
+///
+/// Consente la configurazione audio-visiva (offset di latenza, dimensioni delle note
+/// e attivazione degli effetti neon) salvando le preferenze locali.
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -83,7 +87,9 @@ class SettingsScreen extends StatelessWidget {
                         value: true,
                         onChanged: (val) {},
                         activeColor: AppTheme.secondaryMagenta,
-                        activeTrackColor: AppTheme.secondaryMagenta.withOpacity(0.2),
+                        activeTrackColor: AppTheme.secondaryMagenta.withOpacity(
+                          0.2,
+                        ),
                       ),
                     ),
                   ],
@@ -106,9 +112,8 @@ class SettingsScreen extends StatelessWidget {
                         children: [
                           Text(
                             'BeatForge Engine v1.0.0',
-                            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
                             'Sviluppato in locale con Flutter & Drift SQLite',
@@ -127,6 +132,7 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
+  // Costruisce una riga per le voci delle impostazioni in modo modulare
   Widget _buildSettingsTile(
     BuildContext context, {
     required String title,
@@ -142,15 +148,12 @@ class SettingsScreen extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),
         ),
