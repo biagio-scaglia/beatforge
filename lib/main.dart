@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'data/local/database/app_database.dart';
 import 'data/repositories/audio_repository.dart';
 import 'features/navigation/presentation/app_shell.dart';
+import 'shared/services/audio_player_service.dart';
+import 'shared/services/audio_player_service_provider.dart';
 import 'shared/theme/app_theme.dart';
 
 void main() {
@@ -10,11 +12,15 @@ void main() {
 
   final database = AppDatabase();
   final repository = AudioRepository(database);
+  final playerService = AudioPlayerService();
 
   runApp(
     AudioRepositoryProvider(
       repository: repository,
-      child: const BeatForgeApp(),
+      child: AudioPlayerServiceProvider(
+        service: playerService,
+        child: const BeatForgeApp(),
+      ),
     ),
   );
 }

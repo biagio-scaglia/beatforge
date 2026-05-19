@@ -24,8 +24,10 @@ class TrackCategories extends Table {
 
 /// La tabella di collegamento molti-a-molti tra tracce audio e categorie.
 class TrackCategoryLinks extends Table {
-  IntColumn get trackId => integer().references(AudioTracks, #id, onDelete: KeyAction.cascade)();
-  IntColumn get categoryId => integer().references(TrackCategories, #id, onDelete: KeyAction.cascade)();
+  IntColumn get trackId =>
+      integer().references(AudioTracks, #id, onDelete: KeyAction.cascade)();
+  IntColumn get categoryId =>
+      integer().references(TrackCategories, #id, onDelete: KeyAction.cascade)();
 
   @override
   Set<Column> get primaryKey => {trackId, categoryId};
@@ -36,22 +38,25 @@ class TrackCategoryLinks extends Table {
 /// dato che il web non ha accesso diretto al file system locale persistente.
 class AudioTrackData extends Table {
   IntColumn get id => integer().autoIncrement()();
-  IntColumn get trackId => integer().references(AudioTracks, #id, onDelete: KeyAction.cascade)();
+  IntColumn get trackId =>
+      integer().references(AudioTracks, #id, onDelete: KeyAction.cascade)();
   BlobColumn get bytes => blob()();
 }
 
-@DriftDatabase(tables: [AudioTracks, TrackCategories, TrackCategoryLinks, AudioTrackData])
+@DriftDatabase(
+  tables: [AudioTracks, TrackCategories, TrackCategoryLinks, AudioTrackData],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase()
-      : super(
-          driftDatabase(
-            name: 'beatforge_database',
-            web: DriftWebOptions(
-              sqlite3Wasm: Uri.parse('sqlite3.wasm'),
-              driftWorker: Uri.parse('drift_worker.js'),
-            ),
+    : super(
+        driftDatabase(
+          name: 'beatforge_database',
+          web: DriftWebOptions(
+            sqlite3Wasm: Uri.parse('sqlite3.wasm'),
+            driftWorker: Uri.parse('drift_worker.js'),
           ),
-        );
+        ),
+      );
 
   @override
   int get schemaVersion => 1;

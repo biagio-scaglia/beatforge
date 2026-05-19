@@ -10,10 +10,7 @@ class TrackWithCategories {
   final AudioTrack track;
   final List<TrackCategory> categories;
 
-  TrackWithCategories({
-    required this.track,
-    required this.categories,
-  });
+  TrackWithCategories({required this.track, required this.categories});
 }
 
 /// Repository per gestire le operazioni sui file audio e l'interazione con Drift.
@@ -87,7 +84,8 @@ class AudioRepository {
           await tracksDir.create(recursive: true);
         }
         // Evita collisioni usando un timestamp
-        final uniqueFileName = '${DateTime.now().millisecondsSinceEpoch}_$fileName';
+        final uniqueFileName =
+            '${DateTime.now().millisecondsSinceEpoch}_$fileName';
         final newFile = File('${tracksDir.path}/$uniqueFileName');
         final sourceFile = File(localPath);
         await sourceFile.copy(newFile.path);
@@ -96,7 +94,9 @@ class AudioRepository {
     }
 
     await _db.transaction(() async {
-      final trackId = await _db.into(_db.audioTracks).insert(
+      final trackId = await _db
+          .into(_db.audioTracks)
+          .insert(
             AudioTracksCompanion.insert(
               displayName: displayName,
               fileName: fileName,
@@ -108,20 +108,29 @@ class AudioRepository {
           );
 
       if (kIsWeb && bytes != null) {
-        await _db.into(_db.audioTrackData).insert(
-              AudioTrackDataCompanion.insert(
-                trackId: trackId,
-                bytes: bytes,
-              ),
+        await _db
+            .into(_db.audioTrackData)
+            .insert(
+              AudioTrackDataCompanion.insert(trackId: trackId, bytes: bytes),
             );
       }
     });
   }
 
+  /// Recupera i byte audio associati a una traccia (utilizzato principalmente su Web).
+  Future<Uint8List?> getAudioTrackBytes(int trackId) async {
+    final data = await (_db.select(
+      _db.audioTrackData,
+    )..where((d) => d.trackId.equals(trackId))).getSingleOrNull();
+    return data?.bytes;
+  }
+
   /// Elimina una traccia audio dal database.
   /// Rimuove anche il file locale associato su piattaforme native.
   Future<void> deleteAudioTrack(int trackId) async {
-    final track = await (_db.select(_db.audioTracks)..where((t) => t.id.equals(trackId))).getSingleOrNull();
+    final track = await (_db.select(
+      _db.audioTracks,
+    )..where((t) => t.id.equals(trackId))).getSingleOrNull();
     if (track == null) return;
 
     if (!kIsWeb && track.localPath != null) {
@@ -132,12 +141,16 @@ class AudioRepository {
     }
 
     // L'eliminazione a cascata rimuove i record in trackCategoryLinks e audioTrackData.
-    await (_db.delete(_db.audioTracks)..where((t) => t.id.equals(trackId))).go();
+    await (_db.delete(
+      _db.audioTracks,
+    )..where((t) => t.id.equals(trackId))).go();
   }
 
   /// Assegna una categoria a una traccia.
   Future<void> assignCategoryToTrack(int trackId, int categoryId) async {
-    await _db.into(_db.trackCategoryLinks).insert(
+    await _db
+        .into(_db.trackCategoryLinks)
+        .insert(
           TrackCategoryLinksCompanion.insert(
             trackId: trackId,
             categoryId: categoryId,
@@ -148,8 +161,9 @@ class AudioRepository {
 
   /// Rimuove una categoria da una traccia.
   Future<void> removeCategoryFromTrack(int trackId, int categoryId) async {
-    await (_db.delete(_db.trackCategoryLinks)
-          ..where((l) => l.trackId.equals(trackId) & l.categoryId.equals(categoryId)))
+    await (_db.delete(_db.trackCategoryLinks)..where(
+          (l) => l.trackId.equals(trackId) & l.categoryId.equals(categoryId),
+        ))
         .go();
   }
 }
@@ -165,8 +179,12 @@ class AudioRepositoryProvider extends InheritedWidget {
   });
 
   static AudioRepository of(BuildContext context) {
-    final provider = context.dependOnInheritedWidgetOfExactType<AudioRepositoryProvider>();
-    assert(provider != null, 'Nessun AudioRepositoryProvider trovato nel context.');
+    final provider = context
+        .dependOnInheritedWidgetOfExactType<AudioRepositoryProvider>();
+    assert(
+      provider != null,
+      'Nessun AudioRepositoryProvider trovato nel context.',
+    );
     return provider!.repository;
   }
 

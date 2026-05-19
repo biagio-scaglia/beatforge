@@ -91,7 +91,9 @@ class _NeonListTileState extends State<NeonListTile> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, vertical: 12.0),
+                  horizontal: 16.0,
+                  vertical: 12.0,
+                ),
                 child: Row(
                   children: [
                     const SizedBox(width: 8),
@@ -105,9 +107,7 @@ class _NeonListTileState extends State<NeonListTile> {
                         children: [
                           Text(
                             widget.title,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
+                            style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: highlighted
@@ -139,10 +139,7 @@ class _NeonListTileState extends State<NeonListTile> {
     if (isEnabled) {
       tileWidget = Focus(
         onFocusChange: (focused) => setState(() => _isFocused = focused),
-        child: TactileFeedback(
-          onTap: widget.onTap,
-          child: tileWidget,
-        ),
+        child: TactileFeedback(onTap: widget.onTap, child: tileWidget),
       );
     }
 

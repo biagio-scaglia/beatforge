@@ -13,10 +13,7 @@ class HomeScreen extends StatelessWidget {
   /// Callback attivata quando l'utente sceglie di aprire la libreria musicale.
   final VoidCallback onNavigateToLibrary;
 
-  const HomeScreen({
-    super.key,
-    required this.onNavigateToLibrary,
-  });
+  const HomeScreen({super.key, required this.onNavigateToLibrary});
 
   @override
   Widget build(BuildContext context) {
@@ -33,19 +30,19 @@ class HomeScreen extends StatelessWidget {
                 'BEATFORGE',
                 glowColor: AppTheme.primaryCyan,
                 style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                      color: AppTheme.primaryCyan,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 4.0,
-                    ),
+                  color: AppTheme.primaryCyan,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 4.0,
+                ),
               ),
               const SizedBox(height: AppTokens.spacingSm),
               Text(
                 'Crea e gioca mappe rhythm in locale',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: AppTheme.textSecondary,
-                      letterSpacing: 1.0,
-                    ),
+                  color: AppTheme.textSecondary,
+                  letterSpacing: 1.0,
+                ),
               ),
               const SizedBox(height: AppTokens.spacingXxl),
 
@@ -53,8 +50,8 @@ class HomeScreen extends StatelessWidget {
               LayoutBuilder(
                 builder: (context, constraints) {
                   // Determina la larghezza e lo spacing in base al form factor
-                  final bool isWide = constraints.maxWidth >
-                      AppTokens.breakpointMobileCompact;
+                  final bool isWide =
+                      constraints.maxWidth > AppTokens.breakpointMobileCompact;
 
                   final List<Widget> cardList = [
                     Expanded(
@@ -69,10 +66,9 @@ class HomeScreen extends StatelessWidget {
                                 'Gameplay non ancora implementato in questo step.',
                                 style: TextStyle(
                                   color: AppTheme.primaryCyan,
-                                  fontFamily: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.fontFamily,
+                                  fontFamily: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.fontFamily,
                                 ),
                               ),
                             ),
@@ -84,10 +80,13 @@ class HomeScreen extends StatelessWidget {
                           children: [
                             const SizedBox(height: AppTokens.spacingSm),
                             Container(
-                              padding: const EdgeInsets.all(AppTokens.spacingMd),
+                              padding: const EdgeInsets.all(
+                                AppTokens.spacingMd,
+                              ),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryCyan
-                                    .withValues(alpha: 0.08),
+                                color: AppTheme.primaryCyan.withValues(
+                                  alpha: 0.08,
+                                ),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -99,12 +98,8 @@ class HomeScreen extends StatelessWidget {
                             const SizedBox(height: AppTokens.spacingLg),
                             Text(
                               'AVVIA SESSIONE',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(
-                                    color: AppTheme.primaryCyan,
-                                  ),
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(color: AppTheme.primaryCyan),
                             ),
                             const SizedBox(height: AppTokens.spacingSm),
                             Text(
@@ -130,10 +125,13 @@ class HomeScreen extends StatelessWidget {
                           children: [
                             const SizedBox(height: AppTokens.spacingSm),
                             Container(
-                              padding: const EdgeInsets.all(AppTokens.spacingMd),
+                              padding: const EdgeInsets.all(
+                                AppTokens.spacingMd,
+                              ),
                               decoration: BoxDecoration(
-                                color: AppTheme.secondaryMagenta
-                                    .withValues(alpha: 0.08),
+                                color: AppTheme.secondaryMagenta.withValues(
+                                  alpha: 0.08,
+                                ),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -145,12 +143,8 @@ class HomeScreen extends StatelessWidget {
                             const SizedBox(height: AppTokens.spacingLg),
                             Text(
                               'APRI LIBRERIA',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(
-                                    color: AppTheme.secondaryMagenta,
-                                  ),
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(color: AppTheme.secondaryMagenta),
                             ),
                             const SizedBox(height: AppTokens.spacingSm),
                             Text(
@@ -188,8 +182,9 @@ class HomeScreen extends StatelessWidget {
               NeonCard(
                 glowColor: AppTheme.tertiaryYellow,
                 padding: const EdgeInsets.symmetric(
-                    horizontal: AppTokens.spacingLg,
-                    vertical: AppTokens.spacingMd),
+                  horizontal: AppTokens.spacingLg,
+                  vertical: AppTokens.spacingMd,
+                ),
                 child: Row(
                   children: [
                     const Icon(
@@ -204,9 +199,7 @@ class HomeScreen extends StatelessWidget {
                         children: [
                           Text(
                             'MODALITÀ LOCALE ATTIVA',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
+                            style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: AppTheme.tertiaryYellow,
@@ -217,12 +210,9 @@ class HomeScreen extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             'Nessun server esterno. I dati e i punteggi salvati rimarranno al sicuro sul tuo dispositivo.',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  fontSize: 12,
-                                ),
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.copyWith(fontSize: 12),
                           ),
                         ],
                       ),

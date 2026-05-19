@@ -10,7 +10,7 @@ L'obiettivo principale dell'applicazione è consentire agli utenti di importare 
 
 Il progetto è attualmente in **fase di prototipo iniziale (Work in Progress)**. 
 
-Le fondamenta dell'interfaccia utente responsive, del sistema di navigazione e della persistenza dei dati tramite database locale sono state completate con successo. Attualmente, l'applicazione supporta l'importazione, la classificazione e la rimozione di file audio locali (MP3). I moduli di riproduzione audio e di editor di beatmap non sono ancora presenti e verranno introdotti nei prossimi step.
+Le fondamenta dell'interfaccia utente responsive, del sistema di navigazione, della persistenza dei dati e del player audio sono state completate con successo. Attualmente, l'applicazione supporta l'importazione, la classificazione, la rimozione e la riproduzione reale in tempo reale di file audio locali (MP3) su tutte le piattaforme supportate. Il modulo di editor di beatmap verrà introdotto nei prossimi step.
 
 ---
 
@@ -27,10 +27,13 @@ Le fondamenta dell'interfaccia utente responsive, del sistema di navigazione e d
 - **UI Adaptable & Responsive**: Shell applicativa con adattamento automatico da `NavigationBar` inferiore (su schermi mobile) a `NavigationRail` laterale (su tablet e desktop).
 - **Stile Dark Neon**: Design dark integrato con bagliori neon, animazioni al tocco/passaggio del mouse ed effetti di transizione curati.
 - **Importazione MP3**: Selezione di file audio locali e caricamento automatico all'interno dell'applicazione.
+- **Riproduzione Audio Locale**: Player audio reale integrato basato su `just_audio`, in grado di caricare brani da file system (su native) e da byte array in database (su web) tramite Object URLs.
+- **Mini-Player Neon Persistente**: Pannello di controllo audio con slider per visualizzazione avanzata e seek temporale, pulsanti play/pause/stop e indicatore del tempo.
+- **Prevenzione Memory Leak**: Revoca automatica dei Blob URL in memoria all'avvio di una nuova traccia o al reset del player su piattaforme web.
 - **Database Locale Drift (SQLite)**: Persistenza affidabile per tracce, categorie e collegamenti molti-a-molti.
 - **Gestione Categorie**: Seed iniziale di categorie (*Practice*, *Favorites*, *Test*, *Custom*) e possibilità per l'utente di associare o rimuovere tag ai brani tramite dialog interattivo.
 - **Gestione del File System**: Cancellazione fisica del file audio dal disco su piattaforme native all'eliminazione del brano dalla libreria.
-- **Supporto Web (Chrome)**: Gestione dei limiti di sandboxing del browser tramite archiviazione dei byte in formato BLOB (`AudioTrackData`) e sincronizzazione asincrona.
+- **Supporto Web (Chrome)**: Gestione dei limites di sandboxing del browser tramite archiviazione dei byte in formato BLOB (`AudioTrackData`) e sincronizzazione asincrona.
 
 ---
 
@@ -39,7 +42,7 @@ Le fondamenta dell'interfaccia utente responsive, del sistema di navigazione e d
 - [x] Struttura dell'interfaccia responsive e tema grafico neon.
 - [x] Integrazione del database Drift con supporto multi-piattaforma.
 - [x] Importazione, categorizzazione ed eliminazione di tracce audio locali.
-- [ ] Implementazione del player audio locale (riproduzione da file system/database).
+- [x] Implementazione del player audio locale (riproduzione da file system/database).
 - [ ] Definizione dello standard e della struttura dati per le beatmap.
 - [ ] Creazione dell'editor visivo delle note musicali.
 - [ ] Implementazione dell'engine di gameplay (timing dei tap, scorrimento note, punteggi).
@@ -49,9 +52,10 @@ Le fondamenta dell'interfaccia utente responsive, del sistema di navigazione e d
 ## Stack Tecnico
 
 - **Core**: [Flutter](https://flutter.dev) & [Dart](https://dart.dev) (supporto multi-piattaforma).
+- **Riproduzione Audio**: [just_audio](https://pub.dev/packages/just_audio) per lo streaming ed il seek del brano in background.
 - **Persistenza**: [Drift](https://drift.simonbinder.eu) (SQLite) per la gestione del database relazionale.
 - **File Picker**: [file_picker](https://pub.dev/packages/file_picker) per l'interazione con il file system del dispositivo.
-- **Web Assembly**: `sqlite3.wasm` e `drift_worker.js` per garantire il funzionamento del database SQLite nel browser.
+- **Web Assembly & Web APIs**: `sqlite3.wasm`, `drift_worker.js` e `package:web` per il supporto del database SQLite e per la conversione asincrona dei byte array in Object URLs nel browser.
 - **Tipografia**: Outfit e Orbitron (tramite Google Fonts).
 
 ---

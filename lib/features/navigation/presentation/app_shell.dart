@@ -5,6 +5,7 @@ import '../../library/presentation/library_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/theme/app_tokens.dart';
+import '../../../shared/widgets/mini_player.dart';
 
 /// L'involucro di navigazione principale dell'applicazione.
 ///
@@ -64,7 +65,12 @@ class _AppShellState extends State<AppShell> {
         if (isMobile) {
           return Scaffold(
             body: SafeArea(
-              child: currentScreenAnimated,
+              child: Column(
+                children: [
+                  Expanded(child: currentScreenAnimated),
+                  const MiniPlayer(),
+                ],
+              ),
             ),
             bottomNavigationBar: NavigationBar(
               selectedIndex: _currentIndex,
@@ -106,11 +112,14 @@ class _AppShellState extends State<AppShell> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                                color: AppTheme.primaryCyan, width: 2),
+                              color: AppTheme.primaryCyan,
+                              width: 2,
+                            ),
                             boxShadow: [
                               BoxShadow(
-                                color: AppTheme.primaryCyan
-                                    .withValues(alpha: 0.3),
+                                color: AppTheme.primaryCyan.withValues(
+                                  alpha: 0.3,
+                                ),
                                 blurRadius: 8,
                                 spreadRadius: 1,
                               ),
@@ -125,9 +134,7 @@ class _AppShellState extends State<AppShell> {
                         const SizedBox(height: 8),
                         Text(
                           'BF',
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelLarge
+                          style: Theme.of(context).textTheme.labelLarge
                               ?.copyWith(
                                 color: AppTheme.primaryCyan,
                                 fontSize: 12,
@@ -155,10 +162,18 @@ class _AppShellState extends State<AppShell> {
                   ],
                 ),
                 const VerticalDivider(
-                    thickness: 1, width: 1, color: AppTheme.borderSubtle),
+                  thickness: 1,
+                  width: 1,
+                  color: AppTheme.borderSubtle,
+                ),
                 Expanded(
                   child: SafeArea(
-                    child: currentScreenAnimated,
+                    child: Column(
+                      children: [
+                        Expanded(child: currentScreenAnimated),
+                        const MiniPlayer(),
+                      ],
+                    ),
                   ),
                 ),
               ],

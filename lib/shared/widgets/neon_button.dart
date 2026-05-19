@@ -45,18 +45,22 @@ class _NeonButtonState extends State<NeonButton> {
     final bool highlighted = _isHovered || _isFocused;
 
     // Colori calcolati dinamicamente
-    final Color primaryColor = isEnabled ? widget.glowColor : AppTheme.textMuted;
+    final Color primaryColor = isEnabled
+        ? widget.glowColor
+        : AppTheme.textMuted;
     final Color borderCol = highlighted
         ? primaryColor
         : (widget.isSecondary
-            ? AppTheme.borderSubtle
-            : primaryColor.withValues(alpha: 0.4));
+              ? AppTheme.borderSubtle
+              : primaryColor.withValues(alpha: 0.4));
     final double activeGlowRadius = highlighted ? 8.0 : 0.0;
 
     Widget buttonWidget = MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      cursor: isEnabled ? SystemMouseCursors.click : SystemMouseCursors.forbidden,
+      cursor: isEnabled
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.forbidden,
       child: AnimatedContainer(
         duration: AppTokens.durationFast,
         curve: AppTokens.curveInteractive,
@@ -65,10 +69,7 @@ class _NeonButtonState extends State<NeonButton> {
               ? Colors.transparent
               : primaryColor.withValues(alpha: highlighted ? 0.12 : 0.06),
           borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-          border: Border.all(
-            color: borderCol,
-            width: highlighted ? 1.5 : 1.0,
-          ),
+          border: Border.all(color: borderCol, width: highlighted ? 1.5 : 1.0),
           boxShadow: [
             if (highlighted && activeGlowRadius > 0)
               BoxShadow(
@@ -90,10 +91,10 @@ class _NeonButtonState extends State<NeonButton> {
             Text(
               widget.text.toUpperCase(),
               style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: primaryColor,
-                    fontSize: 13,
-                    letterSpacing: 1.5,
-                  ),
+                color: primaryColor,
+                fontSize: 13,
+                letterSpacing: 1.5,
+              ),
             ),
           ],
         ),
@@ -104,10 +105,7 @@ class _NeonButtonState extends State<NeonButton> {
     if (isEnabled) {
       buttonWidget = Focus(
         onFocusChange: (focused) => setState(() => _isFocused = focused),
-        child: TactileFeedback(
-          onTap: widget.onTap,
-          child: buttonWidget,
-        ),
+        child: TactileFeedback(onTap: widget.onTap, child: buttonWidget),
       );
     }
 

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../../data/local/database/app_database.dart';
 import '../../../data/repositories/audio_repository.dart';
+import '../../../shared/services/audio_player_service_provider.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/theme/app_tokens.dart';
 import '../../../shared/widgets/glow_text.dart';
@@ -41,7 +42,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
 
       if (result != null && result.files.isNotEmpty) {
         final file = result.files.first;
-        final name = file.name.replaceAll(RegExp(r'\.mp3$', caseSensitive: false), '');
+        final name = file.name.replaceAll(
+          RegExp(r'\.mp3$', caseSensitive: false),
+          '',
+        );
 
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -117,7 +121,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: allCategories.map((category) {
-                    final isAssigned = trackWithCats.categories.any((c) => c.id == category.id);
+                    final isAssigned = trackWithCats.categories.any(
+                      (c) => c.id == category.id,
+                    );
                     return CheckboxListTile(
                       title: Text(
                         category.name,
@@ -128,16 +134,24 @@ class _LibraryScreenState extends State<LibraryScreen> {
                       checkColor: Colors.black,
                       onChanged: (bool? value) async {
                         if (value == true) {
-                          await repository.assignCategoryToTrack(trackWithCats.track.id, category.id);
+                          await repository.assignCategoryToTrack(
+                            trackWithCats.track.id,
+                            category.id,
+                          );
                         } else {
-                          await repository.removeCategoryFromTrack(trackWithCats.track.id, category.id);
+                          await repository.removeCategoryFromTrack(
+                            trackWithCats.track.id,
+                            category.id,
+                          );
                         }
 
                         setDialogState(() {
                           if (value == true) {
                             trackWithCats.categories.add(category);
                           } else {
-                            trackWithCats.categories.removeWhere((c) => c.id == category.id);
+                            trackWithCats.categories.removeWhere(
+                              (c) => c.id == category.id,
+                            );
                           }
                         });
                       },
@@ -148,7 +162,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(dialogContext).pop(),
-                  child: const Text('Chiudi', style: TextStyle(color: AppTheme.textSecondary)),
+                  child: const Text(
+                    'Chiudi',
+                    style: TextStyle(color: AppTheme.textSecondary),
+                  ),
                 ),
               ],
             );
@@ -181,7 +198,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Annulla', style: TextStyle(color: AppTheme.textSecondary)),
+              child: const Text(
+                'Annulla',
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -189,7 +209,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
                 side: const BorderSide(color: Colors.redAccent),
               ),
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Elimina', style: TextStyle(color: Colors.redAccent)),
+              child: const Text(
+                'Elimina',
+                style: TextStyle(color: Colors.redAccent),
+              ),
             ),
           ],
         );
@@ -227,6 +250,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
   @override
   Widget build(BuildContext context) {
     final repository = AudioRepositoryProvider.of(context);
+    final playerService = AudioPlayerServiceProvider.of(context);
 
     return StreamBuilder<List<TrackCategory>>(
       stream: repository.watchCategories(),
@@ -272,9 +296,10 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                 GlowText(
                                   'LIBRERIA',
                                   glowColor: AppTheme.primaryCyan,
-                                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                                        color: AppTheme.primaryCyan,
-                                      ),
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .displaySmall
+                                      ?.copyWith(color: AppTheme.primaryCyan),
                                 ),
                                 const SizedBox(height: AppTokens.spacingSm),
                                 Text(
@@ -286,7 +311,9 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           ),
                           const SizedBox(width: AppTokens.spacingMd),
                           if (_isImporting)
-                            const CircularProgressIndicator(color: AppTheme.primaryCyan)
+                            const CircularProgressIndicator(
+                              color: AppTheme.primaryCyan,
+                            )
                           else
                             NeonButton(
                               text: 'Importa MP3',
@@ -302,19 +329,23 @@ class _LibraryScreenState extends State<LibraryScreen> {
                         Wrap(
                           spacing: AppTokens.spacingSm,
                           runSpacing: AppTokens.spacingSm,
-                          children: ['TUTTI', ...categories.map((c) => c.name)].map((filter) {
-                            final bool isSelected = _activeFilter == filter;
-                            return NeonButton(
-                              text: filter.toUpperCase(),
-                              isSecondary: !isSelected,
-                              glowColor: isSelected ? AppTheme.primaryCyan : AppTheme.textSecondary,
-                              onTap: () {
-                                setState(() {
-                                  _activeFilter = filter;
-                                });
-                              },
-                            );
-                          }).toList(),
+                          children: ['TUTTI', ...categories.map((c) => c.name)]
+                              .map((filter) {
+                                final bool isSelected = _activeFilter == filter;
+                                return NeonButton(
+                                  text: filter.toUpperCase(),
+                                  isSecondary: !isSelected,
+                                  glowColor: isSelected
+                                      ? AppTheme.primaryCyan
+                                      : AppTheme.textSecondary,
+                                  onTap: () {
+                                    setState(() {
+                                      _activeFilter = filter;
+                                    });
+                                  },
+                                );
+                              })
+                              .toList(),
                         ),
                         const SizedBox(height: AppTokens.spacingLg),
                       ],
@@ -331,9 +362,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             padding: const EdgeInsets.symmetric(vertical: 40),
                             child: Text(
                               'Nessun brano corrisponde al filtro selezionato.',
-                              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    color: AppTheme.textSecondary,
-                                  ),
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(color: AppTheme.textSecondary),
                             ),
                           ),
                         )
@@ -342,61 +372,101 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: filteredTracks.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: AppTokens.spacingMd),
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: AppTokens.spacingMd),
                           itemBuilder: (context, index) {
                             final item = filteredTracks[index];
                             final song = item.track;
 
                             // Formatta la dimensione in MB
-                            final sizeMb = (song.sizeBytes / (1024 * 1024)).toStringAsFixed(2);
+                            final sizeMb = (song.sizeBytes / (1024 * 1024))
+                                .toStringAsFixed(2);
 
                             // Crea la stringa delle categorie associate
                             final categoriesStr = item.categories.isEmpty
                                 ? 'Nessuna Categoria'
                                 : item.categories.map((c) => c.name).join(', ');
 
-                            return NeonListTile(
-                              title: song.displayName,
-                              subtitle: '$categoriesStr • $sizeMb MB',
-                              glowColor: index % 2 == 0 ? AppTheme.primaryCyan : AppTheme.secondaryMagenta,
-                              leading: Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  color: AppTheme.surfaceElevated,
-                                  borderRadius: BorderRadius.circular(AppTokens.radiusSm),
-                                  border: Border.all(
-                                    color: AppTheme.borderSubtle,
-                                  ),
-                                ),
-                                child: Icon(
-                                  Icons.music_note_rounded,
-                                  color: index % 2 == 0 ? AppTheme.primaryCyan : AppTheme.secondaryMagenta,
-                                ),
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.label_outline_rounded, color: AppTheme.textSecondary),
-                                    tooltip: 'Gestisci categorie',
-                                    onPressed: () => _showCategoryDialog(
-                                      repository,
-                                      item,
-                                      categories,
+                            return ValueListenableBuilder<AudioTrack?>(
+                              valueListenable:
+                                  playerService.currentTrackNotifier,
+                              builder: (context, activeTrack, child) {
+                                final bool isCurrent =
+                                    activeTrack?.id == song.id;
+                                final Color activeColor = isCurrent
+                                    ? AppTheme.primaryCyan
+                                    : (index % 2 == 0
+                                          ? AppTheme.primaryCyan
+                                          : AppTheme.secondaryMagenta);
+
+                                return NeonListTile(
+                                  title: song.displayName,
+                                  subtitle: '$categoriesStr • $sizeMb MB',
+                                  glowColor: activeColor,
+                                  onTap: () {
+                                    playerService.play(song, repository);
+                                  },
+                                  leading: Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.surfaceElevated,
+                                      borderRadius: BorderRadius.circular(
+                                        AppTokens.radiusSm,
+                                      ),
+                                      border: Border.all(
+                                        color: isCurrent
+                                            ? AppTheme.primaryCyan
+                                            : AppTheme.borderSubtle,
+                                        width: isCurrent ? 1.5 : 1.0,
+                                      ),
+                                      boxShadow: [
+                                        if (isCurrent)
+                                          BoxShadow(
+                                            color: AppTheme.primaryCyan
+                                                .withValues(alpha: 0.3),
+                                            blurRadius: 6,
+                                          ),
+                                      ],
+                                    ),
+                                    child: Icon(
+                                      isCurrent
+                                          ? Icons.volume_up_rounded
+                                          : Icons.music_note_rounded,
+                                      color: activeColor,
                                     ),
                                   ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
-                                    tooltip: 'Elimina traccia',
-                                    onPressed: () => _confirmDeleteDialog(
-                                      repository,
-                                      song.id,
-                                      song.displayName,
-                                    ),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.label_outline_rounded,
+                                          color: AppTheme.textSecondary,
+                                        ),
+                                        tooltip: 'Gestisci categorie',
+                                        onPressed: () => _showCategoryDialog(
+                                          repository,
+                                          item,
+                                          categories,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.delete_outline_rounded,
+                                          color: Colors.redAccent,
+                                        ),
+                                        tooltip: 'Elimina traccia',
+                                        onPressed: () => _confirmDeleteDialog(
+                                          repository,
+                                          song.id,
+                                          song.displayName,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
+                                );
+                              },
                             );
                           },
                         ),
@@ -417,10 +487,7 @@ class _EmptyLibraryState extends StatelessWidget {
   final VoidCallback onImport;
   final bool isImporting;
 
-  const _EmptyLibraryState({
-    required this.onImport,
-    required this.isImporting,
-  });
+  const _EmptyLibraryState({required this.onImport, required this.isImporting});
 
   @override
   Widget build(BuildContext context) {
@@ -438,16 +505,16 @@ class _EmptyLibraryState extends StatelessWidget {
             const SizedBox(height: AppTokens.spacingMd),
             Text(
               'Nessun brano nella libreria',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: AppTheme.textSecondary),
             ),
             const SizedBox(height: AppTokens.spacingSm),
             Text(
               'Importa i tuoi file MP3 locali per iniziare a suonare!',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: AppTheme.textSecondary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppTokens.spacingLg),

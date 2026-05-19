@@ -34,8 +34,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 'OPZIONI',
                 glowColor: AppTheme.secondaryMagenta,
                 style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: AppTheme.secondaryMagenta,
-                    ),
+                  color: AppTheme.secondaryMagenta,
+                ),
               ),
               const SizedBox(height: AppTokens.spacingSm),
               Text(
@@ -76,20 +76,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             Expanded(
                               child: Text(
                                 'Latenza Audio (Offset)',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(fontWeight: FontWeight.bold),
                               ),
                             ),
                             const SizedBox(width: AppTokens.spacingMd),
                             Text(
                               '${_latency.toInt()} ms',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyLarge
+                              style: Theme.of(context).textTheme.bodyLarge
                                   ?.copyWith(
                                     color: AppTheme.secondaryMagenta,
                                     fontWeight: FontWeight.bold,
@@ -136,8 +130,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           });
                         },
                         activeThumbColor: AppTheme.secondaryMagenta,
-                        activeTrackColor: AppTheme.secondaryMagenta
-                            .withValues(alpha: 0.20),
+                        activeTrackColor: AppTheme.secondaryMagenta.withValues(
+                          alpha: 0.20,
+                        ),
                       ),
                     ),
                   ],
@@ -160,12 +155,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         children: [
                           Text(
                             'BeatForge Engine v1.1.0',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
-                                ?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            style: Theme.of(context).textTheme.bodyLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           Text(
                             'Sviluppato in locale con Flutter & Drift SQLite',
@@ -199,15 +190,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
             children: [
               Text(
                 title,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
             ],
           ),
         ),

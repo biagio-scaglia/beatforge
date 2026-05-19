@@ -57,7 +57,8 @@ class _NeonCardState extends State<NeonCard> {
     final bool highlighted = _isHovered || _isFocused || widget.isActive;
 
     // Configura i colori del bordo in base allo stato di attivazione/hover/focus
-    final Color borderCol = widget.borderColor ??
+    final Color borderCol =
+        widget.borderColor ??
         (highlighted ? widget.glowColor : AppTheme.borderSubtle);
 
     final double activeGlowRadius = highlighted ? widget.glowRadius : 0.0;
@@ -75,10 +76,7 @@ class _NeonCardState extends State<NeonCard> {
         decoration: BoxDecoration(
           color: AppTheme.surface,
           borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-          border: Border.all(
-            color: borderCol,
-            width: highlighted ? 1.5 : 1.0,
-          ),
+          border: Border.all(color: borderCol, width: highlighted ? 1.5 : 1.0),
           boxShadow: [
             if (highlighted && activeGlowRadius > 0) ...[
               BoxShadow(
@@ -91,7 +89,7 @@ class _NeonCardState extends State<NeonCard> {
                 blurRadius: activeGlowRadius * 2.0,
                 spreadRadius: 0.0,
               ),
-            ]
+            ],
           ],
         ),
         child: Material(
@@ -103,10 +101,7 @@ class _NeonCardState extends State<NeonCard> {
             borderRadius: BorderRadius.circular(AppTokens.radiusLg),
             splashColor: widget.glowColor.withValues(alpha: 0.08),
             highlightColor: widget.glowColor.withValues(alpha: 0.04),
-            child: Padding(
-              padding: widget.padding,
-              child: widget.child,
-            ),
+            child: Padding(padding: widget.padding, child: widget.child),
           ),
         ),
       ),
@@ -114,10 +109,7 @@ class _NeonCardState extends State<NeonCard> {
 
     // Se la card è interattiva (onTap != null), la avvolgiamo nel feedback tattile
     if (widget.onTap != null) {
-      cardWidget = TactileFeedback(
-        onTap: widget.onTap,
-        child: cardWidget,
-      );
+      cardWidget = TactileFeedback(onTap: widget.onTap, child: cardWidget);
     }
 
     return cardWidget;
