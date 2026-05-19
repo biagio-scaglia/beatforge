@@ -1,11 +1,22 @@
 import 'package:flutter/material.dart';
+import 'data/local/database/app_database.dart';
+import 'data/repositories/audio_repository.dart';
 import 'features/navigation/presentation/app_shell.dart';
 import 'shared/theme/app_theme.dart';
 
 void main() {
   // Garantisce che il binding del framework sia inizializzato correttamente
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const BeatForgeApp());
+
+  final database = AppDatabase();
+  final repository = AudioRepository(database);
+
+  runApp(
+    AudioRepositoryProvider(
+      repository: repository,
+      child: const BeatForgeApp(),
+    ),
+  );
 }
 
 /// Punto di ingresso principale (root) dell'applicazione BeatForge.
