@@ -12,7 +12,6 @@ class NoteComponent extends PositionComponent
   final NoteRuntimeModel noteModel;
 
   // Costanti visive
-  static const double preSpawnWindow = 1200.0; // Finestra di scorrimento in ms
   static const double noteRadius = 24.0;
 
   // Stadi dell'animazione post-giudizio
@@ -101,7 +100,9 @@ class NoteComponent extends PositionComponent
       final double targetY = game.size.y - 120.0;
 
       final double timeDiff = noteModel.timeMs.toDouble() - songTimeMs;
-      final double ratio = (timeDiff / preSpawnWindow).clamp(-0.2, 1.0);
+      final double approachTime = controller.difficultyProfile.approachTimeMs
+          .toDouble();
+      final double ratio = (timeDiff / approachTime).clamp(-0.2, 1.0);
 
       // Y scende da spawnY (quando ratio = 1) a targetY (quando ratio = 0)
       final double calculatedY = targetY - (ratio * (targetY - spawnY));

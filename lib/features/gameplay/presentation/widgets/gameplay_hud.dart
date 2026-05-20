@@ -56,89 +56,99 @@ class GameplayHud extends StatelessWidget {
                     ],
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Tasto Pausa + Titolo Brano
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        IconButton(
-                          icon: const Icon(
-                            Icons.pause_circle_outline,
-                            size: 28,
-                          ),
-                          color: AppTheme.primaryCyan,
-                          onPressed: onPausePressed,
+                        // Tasto Pausa + Titolo Brano
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.pause_circle_outline,
+                                size: 28,
+                              ),
+                              color: AppTheme.primaryCyan,
+                              onPressed: onPausePressed,
+                            ),
+                            const SizedBox(width: AppTokens.spacingSm),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  trackName,
+                                  style: const TextStyle(
+                                    color: AppTheme.textPrimary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.secondaryMagenta.withValues(
+                                      alpha: 0.2,
+                                    ),
+                                    border: Border.all(
+                                      color: AppTheme.secondaryMagenta
+                                          .withValues(alpha: 0.5),
+                                      width: 1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    difficulty,
+                                    style: const TextStyle(
+                                      color: AppTheme.secondaryMagenta,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.0,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: AppTokens.spacingSm),
+
+                        // Punteggio corrente (Glow Neon Cyan)
                         Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.end,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              trackName,
-                              style: const TextStyle(
-                                color: AppTheme.textPrimary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                            const Text(
+                              'PUNTEGGIO',
+                              style: TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 9,
+                                letterSpacing: 1.5,
                               ),
                             ),
-                            const SizedBox(height: 2),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppTheme.secondaryMagenta.withValues(
-                                  alpha: 0.2,
-                                ),
-                                border: Border.all(
-                                  color: AppTheme.secondaryMagenta.withValues(
-                                    alpha: 0.5,
-                                  ),
-                                  width: 1,
-                                ),
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                difficulty,
-                                style: const TextStyle(
-                                  color: AppTheme.secondaryMagenta,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.0,
-                                ),
+                            GlowText(
+                              score.toString().padLeft(7, '0'),
+                              glowColor: AppTheme.primaryCyan,
+                              style: const TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1.0,
                               ),
                             ),
                           ],
                         ),
                       ],
                     ),
-
-                    // Punteggio corrente (Glow Neon Cyan)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'PUNTEGGIO',
-                          style: TextStyle(
-                            color: AppTheme.textSecondary,
-                            fontSize: 9,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                        GlowText(
-                          score.toString().padLeft(7, '0'),
-                          glowColor: AppTheme.primaryCyan,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.0,
-                          ),
-                        ),
-                      ],
+                    const SizedBox(height: 12),
+                    // Barra della vita (Health Gauge / Life Bar)
+                    _buildHealthBar(
+                      controller.healthState.currentHealth,
+                      controller.healthState.maxHealth,
                     ),
                   ],
                 ),
@@ -222,6 +232,79 @@ class GameplayHud extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildHealthBar(double current, double max) {
+    final double percentage = (current / max).clamp(0.0, 1.0);
+
+    // Sceglie il colore neon in base alla percentuale di energia
+    Color healthColor = const Color(0xFF00FF66); // Verde neon (salute alta)
+    if (percentage <= 0.25) {
+      healthColor = const Color(0xFFEF4444); // Rosso neon (salute critica)
+    } else if (percentage <= 0.60) {
+      healthColor = const Color(0xFFFFF200); // Giallo neon (salute media)
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'LIFE GAUGE',
+              style: TextStyle(
+                color: AppTheme.textSecondary,
+                fontSize: 8,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
+              ),
+            ),
+            Text(
+              '${current.toInt()}%',
+              style: TextStyle(
+                color: healthColor,
+                fontSize: 10,
+                fontFamily: 'Orbitron',
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Container(
+          height: 6,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(3),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.1),
+              width: 0.5,
+            ),
+          ),
+          alignment: Alignment.centerLeft,
+          child: FractionallySizedBox(
+            widthFactor: percentage,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              decoration: BoxDecoration(
+                color: healthColor,
+                borderRadius: BorderRadius.circular(3),
+                boxShadow: [
+                  BoxShadow(
+                    color: healthColor.withValues(alpha: 0.5),
+                    blurRadius: 6,
+                    spreadRadius: 1,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

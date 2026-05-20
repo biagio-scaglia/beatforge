@@ -45,7 +45,9 @@ Le fondamenta dell'interfaccia utente responsive, del sistema di navigazione, de
 - **Database Locale Drift (SQLite) v2**: Persistenza affidabile per tracce, categorie, collegamenti molti-a-molti, beatmap, timing points (BPM e metriche) e note (tap, hold, flick).
 - **Gestione Categorie**: Seed iniziale di categorie (*Practice*, *Favorites*, *Test*, *Custom*) e possibilità per l'utente di associare o rimuovere tag ai brani tramite dialog interattivo.
 - **Dettagli e Gestione Beatmap**: Dialogo dedicato per aggiungere, visualizzare ed eliminare beatmap personalizzate associate a ciascuna traccia della libreria.
-- **Simulatore Note in Tempo Reale**: Visualizzazione interattiva dei log di gameplay che mostra l'attivazione in tempo reale delle note e dei timing points in sincrono al millisecondo con lo stream del player audio.
+- **Engine di Gameplay (Flame & Audio Sync)**: Motore di scorrimento note in tempo reale agganciato al clock audio estrapolato al millisecondo. Timing dei tap ad alta fedeltà con finestre di tolleranza regolate in base alla difficoltà della beatmap (Easy, Normal, Hard, Expert).
+- **Life Gauge Neon (Barra della Vita)**: Barra di energia neon reattiva con gradazione cromatica dinamica. Incremento salute sui tap precisi e detrazione sui Miss, con interruzione del brano (sconfitta) in caso di salute azzerata.
+- **Flusso Partita Completo**: Transizioni con countdown iniziale, overlay di pausa Cyber-Neon, e schermate finali distinte per Vittoria ("STAGE COMPLETATO") e Sconfitta ("STAGE FALLITO") con la mascotte Beat-chan in diverse pose e tabelle di punteggio dettagliate.
 - **Editor Beatmap Interattivo**: Schermata di editing con timeline orizzontale reattiva (disegnata tramite `CustomPainter`), drag-to-seek, zoom regolabile, griglia ritmica (snap) parametrica calcolata sul BPM del brano, pannello di ispezione nota (inserimento/modifica al volo o tramite tap di note TAP, HOLD e FLICK con direzione) e salvataggio atomico su database.
 - **Gestione del File System**: Cancellazione fisica del file audio dal disco su piattaforme native all'eliminazione del brano dalla libreria.
 - **Supporto Web (Chrome)**: Gestione dei limiti di sandboxing del browser tramite archiviazione dei byte in formato BLOB (`AudioTrackData`) e sincronizzazione asincrona.
@@ -74,7 +76,7 @@ BeatForge integra la mascotte ufficiale **Beat-chan** in composizioni libere e r
 - [x] Implementazione del player audio locale (riproduzione da file system/database).
 - [x] Definizione dello standard e della struttura dati per le beatmap (tabelle Drift v2).
 - [x] Creazione dell'editor visivo delle note musicali (timeline CustomPainter, inserimento/modifica note).
-- [ ] Implementazione dell'engine di gameplay (timing dei tap, scorrimento note, punteggi).
+- [x] Implementazione dell'engine di gameplay (timing dei tap, scorrimento note, punteggi, timing windows basate sulla difficoltà, barra della vita neon, schermate finali vittoria/sconfitta).
 
 ---
 

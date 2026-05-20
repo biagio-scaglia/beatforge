@@ -15,7 +15,7 @@ enum Judgment {
 }
 
 /// Stati di avanzamento della partita.
-enum GameplayStatus { ready, countdown, playing, paused, completed }
+enum GameplayStatus { ready, countdown, playing, paused, completed, failed }
 
 /// Modello a runtime per tenere traccia dello stato di una nota durante il gameplay.
 class NoteRuntimeModel {
@@ -78,5 +78,35 @@ class ScoringState {
     final weightedPoints =
         (perfectCount * 1.0) + (greatCount * 0.6) + (goodCount * 0.3);
     return (weightedPoints / totalHits) * 100.0;
+  }
+}
+
+/// Rappresenta lo stato e il controllo dell'energia (Life Gauge) della sessione di gioco.
+class HealthState {
+  /// Valore di salute corrente
+  double currentHealth = 100.0;
+
+  /// Limite massimo di salute ottenibile
+  final double maxHealth = 100.0;
+
+  /// Soglia al di sotto della quale il gioco fallisce
+  final double failThreshold = 0.0;
+
+  /// Ritorna vero se la barra della vita è vuota
+  bool get isDead => currentHealth <= failThreshold;
+
+  /// Applica una penalità riducendo la salute corrente.
+  void applyPenalty(double penalty) {
+    currentHealth = (currentHealth - penalty).clamp(failThreshold, maxHealth);
+  }
+
+  /// Aggiunge salute a seguito di un hit andato a buon fine.
+  void applyReward(double reward) {
+    currentHealth = (currentHealth + reward).clamp(failThreshold, maxHealth);
+  }
+
+  /// Reimposta la barra della vita al massimo valore iniziale.
+  void reset() {
+    currentHealth = maxHealth;
   }
 }

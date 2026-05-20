@@ -64,7 +64,8 @@ class BeatForgeGame extends FlameGame with KeyboardEvents {
     // Gestione dello spawn dinamico basato sul tempo audio
     if (controller.status == GameplayStatus.playing) {
       final int songTimeMs = controller.currentSongTimeMs;
-      const double preSpawnWindow = NoteComponent.preSpawnWindow;
+      final double preSpawnWindow = controller.difficultyProfile.approachTimeMs
+          .toDouble();
 
       // Spawna le note la cui finestra visiva è iniziata
       while (_nextNoteSpawnIndex < controller.notes.length) {

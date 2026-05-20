@@ -6,6 +6,7 @@ import '../../../data/repositories/audio_repository.dart';
 import '../../../data/repositories/beatmap_repository.dart';
 import '../../../shared/services/audio_player_service.dart';
 import '../models/gameplay_state.dart';
+import '../models/gameplay_config.dart';
 import '../services/audio_sync_service.dart';
 
 /// Evento generato quando una nota viene colpita con successo.
@@ -42,6 +43,7 @@ class GameplayController extends ChangeNotifier {
 
   AudioSyncService? _syncService;
   final ScoringState _scoringState = ScoringState();
+  final HealthState _healthState = HealthState();
 
   // Streams per comunicare eventi a Flame (es. trigger di animazioni grafiche)
   final StreamController<NoteHitEvent> _onNoteHitController =
@@ -71,7 +73,14 @@ class GameplayController extends ChangeNotifier {
   AudioTrack? get track => _track;
   List<NoteRuntimeModel> get notes => _notes;
   ScoringState get scoringState => _scoringState;
+  HealthState get healthState => _healthState;
   int get countdownSeconds => _countdownSeconds;
+
+  /// Profilo di difficoltà corrente basato sul nome della beatmap
+  DifficultyProfile get difficultyProfile =>
+      DifficultyProfile.fromDifficultyName(
+        _beatmap?.difficultyName ?? 'Normal',
+      );
 
   Stream<NoteHitEvent> get onNoteHit => _onNoteHitController.stream;
   Stream<NoteRuntimeModel> get onNoteMissed => _onNoteMissedController.stream;
@@ -87,6 +96,17 @@ class GameplayController extends ChangeNotifier {
   Future<void> loadGameplay() async {
     _isLoading = true;
     _status = GameplayStatus.ready;
+
+    // Resetta punteggio e salute prima del caricamento della partita
+    _scoringState.score = 0;
+    _scoringState.combo = 0;
+    _scoringState.maxCombo = 0;
+    _scoringState.perfectCount = 0;
+    _scoringState.greatCount = 0;
+    _scoringState.goodCount = 0;
+    _scoringState.missCount = 0;
+    _healthState.reset();
+
     notifyListeners();
 
     try {
@@ -118,7 +138,8 @@ class GameplayController extends ChangeNotifier {
       if (_notes.isEmpty) {
         final bpm = _beatmap?.baseBpm ?? 120.0;
         final double beatMs = 60000.0 / bpm;
-        final int maxTimeMs = 300000; // Genera note per max 5 minuti (la sessione si chiude alla fine dell'audio)
+        final int maxTimeMs =
+            300000; // Genera note per max 5 minuti (la sessione si chiude alla fine dell'audio)
         int currentMs = 2000; // Inizia dopo 2 secondi
         int step = 0;
 
@@ -162,7 +183,9 @@ class GameplayController extends ChangeNotifier {
       // Ordina le note per tempo di esecuzione
       _notes.sort((a, b) => a.timeMs.compareTo(b.timeMs));
 
-      debugPrint("Gameplay loaded: ${_notes.length} notes loaded/generated for beatmap $beatmapId");
+      debugPrint(
+        "Gameplay loaded: ${_notes.length} notes loaded/generated for beatmap $beatmapId",
+      );
 
       _isLoading = false;
       notifyListeners();
@@ -251,10 +274,13 @@ class GameplayController extends ChangeNotifier {
 
     // Identifica le note che sono passate oltre la finestra massima di precisione (Miss automatico)
     bool stateChanged = false;
+    final int missWindow = difficultyProfile.timingWindowGoodMs;
     for (final note in _notes) {
-      if (!note.isHit && !note.isMissed && songTime > note.timeMs + 120) {
+      if (!note.isHit &&
+          !note.isMissed &&
+          songTime > note.timeMs + missWindow) {
         note.isMissed = true;
-        _scoringState.addJudgment(Judgment.miss);
+        _applyJudgmentEffect(Judgment.miss);
         _onNoteMissedController.add(note);
         stateChanged = true;
       }
@@ -272,8 +298,7 @@ class GameplayController extends ChangeNotifier {
     final songTime = _syncService!.getAdjustedTimeMs(
       _beatmap?.audioOffsetMs ?? 0,
     );
-    const int goodWindow =
-        120; // Finestra massima in ms per considerare un tap valido
+    final int goodWindow = difficultyProfile.timingWindowGoodMs;
 
     // Trova la nota non ancora colpita più vicina temporalmente in questa lane e all'interno della finestra di hits
     NoteRuntimeModel? targetNote;
@@ -295,7 +320,7 @@ class GameplayController extends ChangeNotifier {
       final judgment = _evaluateTap(diff);
 
       targetNote.isHit = true;
-      _scoringState.addJudgment(judgment);
+      _applyJudgmentEffect(judgment);
 
       _onNoteHitController.add(
         NoteHitEvent(note: targetNote, judgment: judgment, offsetMs: diff),
@@ -308,10 +333,42 @@ class GameplayController extends ChangeNotifier {
   /// Valuta la precisione del millisecondo rispetto alle finestre.
   Judgment _evaluateTap(int diffMs) {
     final absDiff = diffMs.abs();
-    if (absDiff <= 40) return Judgment.perfect;
-    if (absDiff <= 80) return Judgment.great;
-    if (absDiff <= 120) return Judgment.good;
+    final profile = difficultyProfile;
+    if (absDiff <= profile.timingWindowPerfectMs) return Judgment.perfect;
+    if (absDiff <= profile.timingWindowGreatMs) return Judgment.great;
+    if (absDiff <= profile.timingWindowGoodMs) return Judgment.good;
     return Judgment.miss;
+  }
+
+  /// Applica gli effetti di un giudizio su punteggio e barra della vita.
+  void _applyJudgmentEffect(Judgment judgment) {
+    _scoringState.addJudgment(judgment);
+
+    final profile = difficultyProfile;
+    if (judgment == Judgment.miss) {
+      _healthState.applyPenalty(profile.healthMissPenalty);
+    } else if (judgment == Judgment.perfect) {
+      _healthState.applyReward(profile.healthPerfectReward);
+    } else if (judgment == Judgment.great) {
+      _healthState.applyReward(profile.healthGreatReward);
+    } else if (judgment == Judgment.good) {
+      _healthState.applyReward(profile.healthGoodReward);
+    }
+
+    // Se la salute scende a zero, interrompiamo la partita come sconfitta (fail)
+    if (_healthState.isDead && _status == GameplayStatus.playing) {
+      _failGame();
+    }
+  }
+
+  /// Gestisce la transizione allo stato di fallimento (sconfitta).
+  Future<void> _failGame() async {
+    _status = GameplayStatus.failed;
+    _countdownTimer?.cancel();
+    _playerStateSubscription?.cancel();
+    await playerService
+        .pause(); // Sospende la riproduzione audio immediatamente
+    notifyListeners();
   }
 
   /// Conclude la sessione di gioco a fine brano.

@@ -142,6 +142,9 @@ class _GameplayScreenState extends State<GameplayScreen> {
 
               // 7. Overlay: Schermata dei RISULTATI (Completato)
               if (status == GameplayStatus.completed) _buildResultsOverlay(),
+
+              // 8. Overlay: Schermata di SCONFITTA (Fail)
+              if (status == GameplayStatus.failed) _buildFailOverlay(),
             ],
           );
         },
@@ -538,6 +541,201 @@ class _GameplayScreenState extends State<GameplayScreen> {
                             foregroundColor: AppTheme.secondaryMagenta,
                             side: const BorderSide(
                               color: AppTheme.secondaryMagenta,
+                              width: 1.2,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 14,
+                            ),
+                          ),
+                          onPressed: () {
+                            _game!.resetSpawner();
+                            _controller.restartGame();
+                          },
+                        ),
+                        const SizedBox(width: AppTokens.spacingMd),
+                        OutlinedButton.icon(
+                          icon: const Icon(Icons.library_music_rounded),
+                          label: const Text(
+                            'LIBRERIA',
+                            style: TextStyle(
+                              fontFamily: 'Orbitron',
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.textSecondary,
+                            side: const BorderSide(
+                              color: AppTheme.borderSubtle,
+                            ),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 14,
+                            ),
+                          ),
+                          onPressed: () async {
+                            await _controller.quitGame();
+                            if (mounted) {
+                              Navigator.of(context).pop();
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Schermata di sconfitta (Fail) con toni rossi neon e tensione.
+  Widget _buildFailOverlay() {
+    final state = _controller.scoringState;
+
+    return Positioned.fill(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0),
+        child: Container(
+          color: Colors.black.withValues(alpha: 0.85),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: Column(
+                  children: [
+                    const GlowText(
+                      'STAGE FALLITO',
+                      glowColor: Color(0xFFEF4444),
+                      style: TextStyle(
+                        color: Color(0xFFEF4444),
+                        fontSize: 28,
+                        fontFamily: 'Orbitron',
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2.0,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'LA VITA È FINITA! ALLENA IL TUO RITMO E RIPROVA.',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 12,
+                        letterSpacing: 1.0,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Layout responsive: Mascotte + Dettagli Punteggio (Toni Rossi)
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isLarge = constraints.maxWidth >= 600;
+
+                        final mascotWidget = BeatChanHeroComposition(
+                          size: isLarge ? 280 : 200,
+                          pose: BeatChanPose.standard,
+                        );
+
+                        final statsWidget = Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Titolo
+                            const Text(
+                              'RISULTATI PARZIALI',
+                              style: TextStyle(
+                                color: AppTheme.textSecondary,
+                                fontSize: 10,
+                                letterSpacing: 1.5,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: AppTokens.spacingMd),
+
+                            // Punteggio & Combo
+                            _buildResultRow(
+                              'Punteggio Raggiunto',
+                              '${state.score}',
+                              const Color(0xFFEF4444),
+                            ),
+                            _buildResultRow(
+                              'Max Combo',
+                              '${state.maxCombo}',
+                              AppTheme.secondaryMagenta,
+                            ),
+                            const Divider(color: Color(0xFF3B1E1E), height: 24),
+
+                            // Dettaglio Giudizi
+                            _buildResultRow(
+                              'PERFECT',
+                              '${state.perfectCount}',
+                              const Color(0xFF00F2FE).withValues(alpha: 0.5),
+                            ),
+                            _buildResultRow(
+                              'GREAT',
+                              '${state.greatCount}',
+                              const Color(0xFFFF007F).withValues(alpha: 0.5),
+                            ),
+                            _buildResultRow(
+                              'GOOD',
+                              '${state.goodCount}',
+                              const Color(0xFFFFF200).withValues(alpha: 0.5),
+                            ),
+                            _buildResultRow(
+                              'MISS',
+                              '${state.missCount}',
+                              const Color(0xFFEF4444),
+                            ),
+                          ],
+                        );
+
+                        if (isLarge) {
+                          return Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              mascotWidget,
+                              const SizedBox(width: 40),
+                              Expanded(child: statsWidget),
+                            ],
+                          );
+                        } else {
+                          return Column(
+                            children: [
+                              mascotWidget,
+                              const SizedBox(height: 20),
+                              statsWidget,
+                            ],
+                          );
+                        }
+                      },
+                    ),
+
+                    const SizedBox(height: 40),
+
+                    // Azioni di fine partita
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.replay_rounded),
+                          label: const Text(
+                            'RIPROVA',
+                            style: TextStyle(
+                              fontFamily: 'Orbitron',
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(
+                              0xFFEF4444,
+                            ).withValues(alpha: 0.15),
+                            foregroundColor: const Color(0xFFEF4444),
+                            side: const BorderSide(
+                              color: Color(0xFFEF4444),
                               width: 1.2,
                             ),
                             padding: const EdgeInsets.symmetric(
