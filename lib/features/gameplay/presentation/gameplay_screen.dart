@@ -82,72 +82,119 @@ class _GameplayScreenState extends State<GameplayScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      body: ListenableBuilder(
-        listenable: _controller,
-        builder: (context, _) {
-          if (_controller.isLoading || _game == null) {
-            return const Center(child: BeatForgeLoader());
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        // Se siamo in uno stato in cui l'utente può uscire direttamente, o il gioco è già terminato
+        if (_controller.status == GameplayStatus.ready ||
+            _controller.status == GameplayStatus.completed ||
+            _controller.status == GameplayStatus.failed) {
+          await _controller.quitGame();
+          if (context.mounted) {
+            Navigator.of(context).pop();
           }
+          return;
+        }
 
-          final status = _controller.status;
+        // Altrimenti, metti in pausa il gioco e chiedi conferma
+        _controller.pauseGame();
 
-          return Stack(
-            children: [
-              // 1. Il Canvas di Gioco Flame (sempre renderizzato per mostrare le corsie/Judgment line)
-              Positioned.fill(child: GameWidget(game: _game!)),
-
-              // 2. Zone di input touch trasparenti in overlay (attive solo durante il playing)
-              if (status == GameplayStatus.playing)
-                Positioned.fill(
-                  child: Row(
-                    children: List.generate(4, (index) {
-                      return Expanded(
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTapDown: (_) {
-                            // Invia l'input al Flame game per l'effetto flash visivo sulla corsia
-                            // e al controller per il calcolo del timing
-                            _game!.pressLane(index);
-                          },
-                          child: const SizedBox.expand(),
-                        ),
-                      );
-                    }),
-                  ),
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            backgroundColor: AppTheme.surfaceElevated,
+            title: const Text(
+              'Vuoi abbandonare la partita?',
+              style: TextStyle(
+                color: AppTheme.textPrimary,
+                fontFamily: 'Orbitron',
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: const Text(
+              'I tuoi progressi andranno persi.',
+              style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text(
+                  'ANNULLA',
+                  style: TextStyle(color: AppTheme.textSecondary),
                 ),
+              ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('ABBANDONA'),
+              ),
+            ],
+          ),
+        );
 
-              // 3. HUD principale: Punteggio, Combo, Avanzamento, Giudizio
-              if (status == GameplayStatus.playing ||
-                  status == GameplayStatus.paused)
-                Positioned.fill(
-                  child: IgnorePointer(
-                    ignoring: status == GameplayStatus.paused,
-                    child: GameplayHud(
-                      controller: _controller,
-                      onPausePressed: () => _controller.pauseGame(),
+        if (confirm == true) {
+          await _controller.quitGame();
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppTheme.background,
+        body: ListenableBuilder(
+          listenable: _controller,
+          builder: (context, _) {
+            if (_controller.isLoading || _game == null) {
+              return const Center(child: BeatForgeLoader());
+            }
+
+            final status = _controller.status;
+
+            return Stack(
+              children: [
+                // 1. Il Canvas di Gioco Flame (sempre renderizzato per mostrare le corsie/Judgment line)
+                Positioned.fill(child: GameWidget(game: _game!)),
+
+                // 2. Zone di input touch trasparenti in overlay (Rimosse perché ora gestite direttamente da Flame)
+
+                // 3. HUD principale: Punteggio, Combo, Avanzamento, Giudizio
+                if (status == GameplayStatus.playing ||
+                    status == GameplayStatus.paused)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      ignoring: status == GameplayStatus.paused,
+                      child: GameplayHud(
+                        controller: _controller,
+                        onPausePressed: () => _controller.pauseGame(),
+                      ),
                     ),
                   ),
-                ),
 
-              // 4. Overlay: Schermata iniziale READY
-              if (status == GameplayStatus.ready) _buildReadyOverlay(),
+                // 4. Overlay: Schermata iniziale READY
+                if (status == GameplayStatus.ready) _buildReadyOverlay(),
 
-              // 5. Overlay: Countdown (3, 2, 1) prima dell'inizio
-              if (status == GameplayStatus.countdown) _buildCountdownOverlay(),
+                // 5. Overlay: Countdown (3, 2, 1) prima dell'inizio
+                if (status == GameplayStatus.countdown)
+                  _buildCountdownOverlay(),
 
-              // 6. Overlay: Schermata di PAUSA
-              if (status == GameplayStatus.paused) _buildPauseOverlay(),
+                // 6. Overlay: Schermata di PAUSA
+                if (status == GameplayStatus.paused) _buildPauseOverlay(),
 
-              // 7. Overlay: Schermata dei RISULTATI (Completato)
-              if (status == GameplayStatus.completed) _buildResultsOverlay(),
+                // 7. Overlay: Schermata dei RISULTATI (Completato)
+                if (status == GameplayStatus.completed) _buildResultsOverlay(),
 
-              // 8. Overlay: Schermata di SCONFITTA (Fail)
-              if (status == GameplayStatus.failed) _buildFailOverlay(),
-            ],
-          );
-        },
+                // 8. Overlay: Schermata di SCONFITTA (Fail)
+                if (status == GameplayStatus.failed) _buildFailOverlay(),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -193,32 +240,68 @@ class _GameplayScreenState extends State<GameplayScreen> {
                 ),
               ),
               const SizedBox(height: 40),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryCyan.withValues(alpha: 0.15),
-                  foregroundColor: AppTheme.primaryCyan,
-                  side: const BorderSide(
-                    color: AppTheme.primaryCyan,
-                    width: 1.5,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.redAccent,
+                      side: const BorderSide(
+                        color: Colors.redAccent,
+                        width: 1.5,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 16,
+                      ),
+                    ),
+                    onPressed: () async {
+                      await _controller.quitGame();
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    },
+                    child: const Text(
+                      'ESCI',
+                      style: TextStyle(
+                        fontFamily: 'Orbitron',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40,
-                    vertical: 16,
+                  const SizedBox(width: AppTokens.spacingMd),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryCyan.withValues(
+                        alpha: 0.15,
+                      ),
+                      foregroundColor: AppTheme.primaryCyan,
+                      side: const BorderSide(
+                        color: AppTheme.primaryCyan,
+                        width: 1.5,
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 16,
+                      ),
+                    ),
+                    onPressed: () {
+                      _game!.resetSpawner();
+                      _controller.startCountdown();
+                    },
+                    child: const Text(
+                      'AVVIA PARTITA',
+                      style: TextStyle(
+                        fontFamily: 'Orbitron',
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
                   ),
-                ),
-                onPressed: () {
-                  _game!.resetSpawner();
-                  _controller.startCountdown();
-                },
-                child: const Text(
-                  'AVVIA PARTITA',
-                  style: TextStyle(
-                    fontFamily: 'Orbitron',
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.5,
-                  ),
-                ),
+                ],
               ),
             ],
           ),

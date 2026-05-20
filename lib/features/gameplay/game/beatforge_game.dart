@@ -1,5 +1,6 @@
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
+import 'package:flame/events.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import '../controllers/gameplay_controller.dart';
@@ -11,8 +12,9 @@ import 'note_component.dart';
 ///
 /// Disegna l'area di gioco principale, gestisce il posizionamento delle corsie,
 /// esegue il game loop e spawn delle note al millisecondo corretto, e intercetta
-/// l'input da tastiera (tasti D, F, J, K) per il test su Desktop e Web.
-class BeatForgeGame extends FlameGame with KeyboardEvents {
+/// l'input touch/mouse e tastiera (tasti D, F, J, K).
+class BeatForgeGame extends FlameGame
+    with KeyboardEvents, TapCallbacks, DragCallbacks {
   final GameplayController controller;
 
   final List<LaneComponent> _lanes = [];
@@ -46,12 +48,119 @@ class BeatForgeGame extends FlameGame with KeyboardEvents {
     );
   }
 
-  /// Registra la pressione di un tasto in una corsia
+  // Traccia le coordinate iniziali e i tempi dei gesti di trascinamento (multi-touch)
+  final Map<int, Offset> _dragStartPositions = {};
+  final Map<int, int> _dragStartTimes = {};
+
+  /// Registra la pressione di un tasto/tocco in una corsia
   void pressLane(int laneIndex) {
     if (laneIndex >= 0 && laneIndex < 4) {
       _lanes[laneIndex].triggerPress();
-      controller.handleInput(laneIndex);
+      controller.pressLane(laneIndex);
     }
+  }
+
+  /// Registra il rilascio di un tasto/tocco in una corsia
+  void releaseLane(int laneIndex) {
+    if (laneIndex >= 0 && laneIndex < 4) {
+      controller.releaseLane(laneIndex);
+    }
+  }
+
+  /// Calcola la corsia (0-3) a partire dalla coordinata X locale
+  int? _getLaneFromX(double x) {
+    if (size.x <= 0) return null;
+    final int lane = (x / (size.x / 4)).floor();
+    return lane.clamp(0, 3);
+  }
+
+  @override
+  void onTapDown(TapDownEvent event) {
+    super.onTapDown(event);
+    final lane = _getLaneFromX(event.localPosition.x);
+    if (lane != null) {
+      pressLane(lane);
+    }
+  }
+
+  @override
+  void onTapUp(TapUpEvent event) {
+    super.onTapUp(event);
+    final lane = _getLaneFromX(event.localPosition.x);
+    if (lane != null) {
+      releaseLane(lane);
+    }
+  }
+
+  @override
+  void onDragStart(DragStartEvent event) {
+    super.onDragStart(event);
+    final lane = _getLaneFromX(event.localPosition.x);
+    if (lane != null) {
+      pressLane(lane);
+      _dragStartPositions[event.pointerId] = event.localPosition.toOffset();
+      _dragStartTimes[event.pointerId] = DateTime.now().millisecondsSinceEpoch;
+    }
+  }
+
+  @override
+  void onDragUpdate(DragUpdateEvent event) {
+    super.onDragUpdate(event);
+    final startPos = _dragStartPositions[event.pointerId];
+    final startTime = _dragStartTimes[event.pointerId];
+    if (startPos != null && startTime != null) {
+      final currentPos = event.localEndPosition.toOffset();
+      final delta = currentPos - startPos;
+      final dist = delta.distance;
+      final elapsed = DateTime.now().millisecondsSinceEpoch - startTime;
+
+      // Se lo swipe supera una certa distanza velocemente
+      if (dist > 30.0 && elapsed < 250) {
+        final lane = _getLaneFromX(startPos.dx);
+        if (lane != null) {
+          // Determina la direzione del flick
+          String direction = 'up';
+          if (delta.dx.abs() > delta.dy.abs()) {
+            direction = delta.dx > 0 ? 'right' : 'left';
+          } else {
+            direction = delta.dy > 0 ? 'down' : 'up';
+          }
+
+          controller.handleFlick(lane, direction);
+
+          _dragStartPositions.remove(event.pointerId);
+          _dragStartTimes.remove(event.pointerId);
+        }
+      }
+    }
+  }
+
+  @override
+  void onDragEnd(DragEndEvent event) {
+    super.onDragEnd(event);
+    final startPos = _dragStartPositions[event.pointerId];
+    if (startPos != null) {
+      final lane = _getLaneFromX(startPos.dx);
+      if (lane != null) {
+        releaseLane(lane);
+      }
+    }
+    _dragStartPositions.remove(event.pointerId);
+    _dragStartTimes.remove(event.pointerId);
+  }
+
+  @override
+  void onDragCancel(DragCancelEvent event) {
+    super.onDragCancel(event);
+    final startPos = _dragStartPositions[event.pointerId];
+    if (startPos != null) {
+      final lane = _getLaneFromX(startPos.dx);
+      if (lane != null) {
+        releaseLane(lane);
+      }
+    }
+    _dragStartPositions.remove(event.pointerId);
+    _dragStartTimes.remove(event.pointerId);
   }
 
   @override
@@ -109,16 +218,18 @@ class BeatForgeGame extends FlameGame with KeyboardEvents {
     KeyEvent event,
     Set<LogicalKeyboardKey> keysPressed,
   ) {
-    // Intercetta la sola pressione iniziale del tasto per evitare lo spam ripetuto da hold
-    if (event is KeyDownEvent) {
-      int? laneIndex;
-      if (event.logicalKey == LogicalKeyboardKey.keyD) laneIndex = 0;
-      if (event.logicalKey == LogicalKeyboardKey.keyF) laneIndex = 1;
-      if (event.logicalKey == LogicalKeyboardKey.keyJ) laneIndex = 2;
-      if (event.logicalKey == LogicalKeyboardKey.keyK) laneIndex = 3;
+    int? laneIndex;
+    if (event.logicalKey == LogicalKeyboardKey.keyD) laneIndex = 0;
+    if (event.logicalKey == LogicalKeyboardKey.keyF) laneIndex = 1;
+    if (event.logicalKey == LogicalKeyboardKey.keyJ) laneIndex = 2;
+    if (event.logicalKey == LogicalKeyboardKey.keyK) laneIndex = 3;
 
-      if (laneIndex != null) {
+    if (laneIndex != null) {
+      if (event is KeyDownEvent) {
         pressLane(laneIndex);
+        return KeyEventResult.handled;
+      } else if (event is KeyUpEvent) {
+        releaseLane(laneIndex);
         return KeyEventResult.handled;
       }
     }

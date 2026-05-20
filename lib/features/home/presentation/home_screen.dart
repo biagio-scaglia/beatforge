@@ -144,14 +144,6 @@ class HomeScreen extends StatelessWidget {
                     glowColor: AppTheme.primaryCyan,
                     onTap: onNavigateToLibrary,
                   ),
-                  const SizedBox(width: AppTokens.spacingMd),
-                  NeonButton(
-                    text: 'Avvia Sessione',
-                    icon: Icons.play_arrow_rounded,
-                    glowColor: AppTheme.secondaryMagenta,
-                    isSecondary: true,
-                    onTap: () => _showNotImplementedSnackBar(context),
-                  ),
                 ],
               ),
             ],
@@ -268,29 +260,11 @@ class HomeScreen extends StatelessWidget {
         // Bottoni CTA
         SizedBox(
           width: double.infinity,
-          child: Column(
-            children: [
-              SizedBox(
-                width: double.infinity,
-                child: NeonButton(
-                  text: 'Apri Libreria',
-                  icon: Icons.library_music_rounded,
-                  glowColor: AppTheme.primaryCyan,
-                  onTap: onNavigateToLibrary,
-                ),
-              ),
-              const SizedBox(height: AppTokens.spacingMd),
-              SizedBox(
-                width: double.infinity,
-                child: NeonButton(
-                  text: 'Avvia Sessione',
-                  icon: Icons.play_arrow_rounded,
-                  glowColor: AppTheme.secondaryMagenta,
-                  isSecondary: true,
-                  onTap: () => _showNotImplementedSnackBar(context),
-                ),
-              ),
-            ],
+          child: NeonButton(
+            text: 'Apri Libreria',
+            icon: Icons.library_music_rounded,
+            glowColor: AppTheme.primaryCyan,
+            onTap: onNavigateToLibrary,
           ),
         ),
       ],
@@ -317,21 +291,6 @@ class HomeScreen extends StatelessWidget {
           fontWeight: FontWeight.bold,
           letterSpacing: 1.5,
           fontFamily: 'Orbitron',
-        ),
-      ),
-    );
-  }
-
-  void _showNotImplementedSnackBar(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppTheme.surfaceElevated,
-        content: Text(
-          'Gameplay non ancora implementato in questo step.',
-          style: TextStyle(
-            color: AppTheme.primaryCyan,
-            fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
-          ),
         ),
       ),
     );

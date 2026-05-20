@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import '../models/gameplay_state.dart';
 import 'beatforge_game.dart';
 
-/// Componente grafico Flame per rappresentare una singola nota nel gameplay.
-///
-/// La posizione della nota è interamente calcolata in base alla differenza di tempo tra il
-/// tempo di hit pianificato (`noteModel.timeMs`) e il tempo audio corrente del controller.
-class NoteComponent extends PositionComponent
+/// Componente grafico Flame base per rappresentare una nota nel gameplay.
+/// Utilizza una factory per istanziare la corretta sottoclasse a seconda del tipo di nota.
+abstract class NoteComponent extends PositionComponent
     with HasGameReference<BeatForgeGame> {
   final NoteRuntimeModel noteModel;
 
@@ -21,11 +19,21 @@ class NoteComponent extends PositionComponent
   static const double explosionDuration = 0.15; // secondi
   static const double missDuration = 0.20; // secondi
 
-  late Paint _ringPaint;
-  late Paint _glowPaint;
-  late Paint _centerPaint;
+  late Paint ringPaint;
+  late Paint glowPaint;
+  late Paint centerPaint;
 
-  NoteComponent({required this.noteModel});
+  NoteComponent._internal({required this.noteModel});
+
+  factory NoteComponent({required NoteRuntimeModel noteModel}) {
+    if (noteModel.type == 'hold') {
+      return HoldNoteComponent(noteModel: noteModel);
+    } else if (noteModel.type == 'flick') {
+      return FlickNoteComponent(noteModel: noteModel);
+    } else {
+      return TapNoteComponent(noteModel: noteModel);
+    }
+  }
 
   @override
   Future<void> onLoad() async {
@@ -37,16 +45,16 @@ class NoteComponent extends PositionComponent
         ? const Color(0xFF00F2FE) // Cyan neon
         : const Color(0xFFFF007F); // Magenta neon
 
-    _ringPaint = Paint()
+    ringPaint = Paint()
       ..color = primaryColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3.0;
 
-    _glowPaint = Paint()
+    glowPaint = Paint()
       ..color = primaryColor.withValues(alpha: 0.3)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
 
-    _centerPaint = Paint()
+    centerPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.fill;
 
@@ -58,8 +66,6 @@ class NoteComponent extends PositionComponent
   @override
   void update(double dt) {
     super.update(dt);
-
-    final controller = game.controller;
 
     // Gestione dell'animazione di hit (esplosione)
     if (_isExploding) {
@@ -92,7 +98,13 @@ class NoteComponent extends PositionComponent
       return;
     }
 
-    // Calcolo della posizione Y basata rigorosamente sul tempo audio estrapolato
+    updatePosition();
+  }
+
+  /// Aggiorna la posizione della nota sul Canvas.
+  /// Sovrascritto da HoldNoteComponent per logiche particolari.
+  void updatePosition() {
+    final controller = game.controller;
     if (controller.status == GameplayStatus.playing) {
       final int songTimeMs = controller.currentSongTimeMs;
 
@@ -120,7 +132,6 @@ class NoteComponent extends PositionComponent
     final double center = size.x / 2;
 
     if (_isExploding) {
-      // Effetto esplosione: cerchio che si espande e svanisce
       final double progress = (_animationTimer / explosionDuration).clamp(
         0.0,
         1.0,
@@ -129,7 +140,7 @@ class NoteComponent extends PositionComponent
       final double alpha = 1.0 - progress;
 
       final Paint explosionPaint = Paint()
-        ..color = _ringPaint.color.withValues(alpha: alpha)
+        ..color = ringPaint.color.withValues(alpha: alpha)
         ..style = PaintingStyle.stroke
         ..strokeWidth = 4.0 * (1.0 - progress);
 
@@ -151,7 +162,6 @@ class NoteComponent extends PositionComponent
     }
 
     if (_isFadingOutMiss) {
-      // Effetto miss: la nota svanisce scendendo leggermente
       final double progress = (_animationTimer / missDuration).clamp(0.0, 1.0);
       final double alpha = 1.0 - progress;
 
@@ -165,20 +175,198 @@ class NoteComponent extends PositionComponent
     }
 
     // Disegno nota standard
-    // 1. Glow di sfondo
-    canvas.drawCircle(Offset(center, center), noteRadius + 4, _glowPaint);
+    canvas.drawCircle(Offset(center, center), noteRadius + 4, glowPaint);
+    canvas.drawCircle(Offset(center, center), noteRadius, ringPaint);
+    canvas.drawCircle(Offset(center, center), noteRadius * 0.4, centerPaint);
 
-    // 2. Anello esterno neon
-    canvas.drawCircle(Offset(center, center), noteRadius, _ringPaint);
-
-    // 3. Nucleo bianco brillante
-    canvas.drawCircle(Offset(center, center), noteRadius * 0.4, _centerPaint);
-
-    // Decorazione interna (anello aggiuntivo molto sottile)
     final Paint innerRing = Paint()
       ..color = Colors.black.withValues(alpha: 0.5)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
     canvas.drawCircle(Offset(center, center), noteRadius * 0.6, innerRing);
+  }
+}
+
+/// Nota di tipo standard: singola pressione rapida (Tap).
+class TapNoteComponent extends NoteComponent {
+  TapNoteComponent({required super.noteModel}) : super._internal();
+}
+
+/// Nota di tipo Flick: richiede uno swipe rapido in una direzione specifica.
+class FlickNoteComponent extends NoteComponent {
+  FlickNoteComponent({required super.noteModel}) : super._internal();
+
+  @override
+  void render(Canvas canvas) {
+    // Disegna la forma di base della nota
+    super.render(canvas);
+
+    if (_isExploding || _isFadingOutMiss) return;
+
+    final double center = size.x / 2;
+    final String dir = (noteModel.direction ?? 'up').toLowerCase();
+
+    canvas.save();
+    canvas.translate(center, center);
+
+    // Ruota la tela a seconda della direzione indicata
+    if (dir == 'right') {
+      canvas.rotate(90 * 3.14159265 / 180);
+    } else if (dir == 'down') {
+      canvas.rotate(180 * 3.14159265 / 180);
+    } else if (dir == 'left') {
+      canvas.rotate(-90 * 3.14159265 / 180);
+    }
+
+    // Definisce il tracciato della freccia rivolta verso l'alto (up)
+    final Path arrowPath = Path();
+    arrowPath.moveTo(0, -14);
+    arrowPath.lineTo(-10, -2);
+    arrowPath.lineTo(-4, -2);
+    arrowPath.lineTo(-4, 10);
+    arrowPath.lineTo(4, 10);
+    arrowPath.lineTo(4, -2);
+    arrowPath.lineTo(10, -2);
+    arrowPath.close();
+
+    final Paint arrowPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    final Paint arrowGlow = Paint()
+      ..color = ringPaint.color.withValues(alpha: 0.8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.0;
+
+    canvas.drawPath(arrowPath, arrowPaint);
+    canvas.drawPath(arrowPath, arrowGlow);
+    canvas.restore();
+  }
+}
+
+/// Nota di tipo Hold: richiede una pressione prolungata per tutta la sua durata.
+class HoldNoteComponent extends NoteComponent {
+  double tailY = 0.0;
+  double headY = 0.0;
+
+  HoldNoteComponent({required super.noteModel}) : super._internal();
+
+  @override
+  void updatePosition() {
+    final controller = game.controller;
+    if (controller.status == GameplayStatus.playing) {
+      final int songTimeMs = controller.currentSongTimeMs;
+
+      final double spawnY = 60.0;
+      final double targetY = game.size.y - 120.0;
+      final double approachTime = controller.difficultyProfile.approachTimeMs
+          .toDouble();
+
+      // Calcola Head Y (se la hold è già iniziata, la testa si blocca sulla Judgment Line)
+      if (noteModel.holdStarted && !noteModel.holdCompleted) {
+        headY = targetY;
+      } else {
+        final double headDiff = noteModel.timeMs.toDouble() - songTimeMs;
+        final double headRatio = (headDiff / approachTime).clamp(-0.2, 1.0);
+        headY = targetY - (headRatio * (targetY - spawnY));
+      }
+
+      // Calcola Tail Y
+      final double tailTime = (noteModel.timeMs + (noteModel.durationMs ?? 0))
+          .toDouble();
+      final double tailDiff = tailTime - songTimeMs;
+      final double tailRatio = (tailDiff / approachTime).clamp(-0.2, 1.0);
+      tailY = targetY - (tailRatio * (targetY - spawnY));
+
+      final double laneWidth = game.size.x / 4;
+      final double calculatedX = (noteModel.lane + 0.5) * laneWidth;
+
+      position = Vector2(calculatedX, headY);
+    }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    final double center = size.x / 2;
+
+    if (_isExploding) {
+      // Disegna l'animazione di esplosione sulla testa
+      super.render(canvas);
+      return;
+    }
+
+    if (_isFadingOutMiss) {
+      // Disegna l'animazione di miss sulla testa
+      super.render(canvas);
+      return;
+    }
+
+    // Calcola la posizione Y della coda (tail) locale alla testa
+    final double tailLocalY = tailY - headY;
+
+    // 1. Disegna la striscia/capsula neon che unisce testa e coda
+    final double bodyWidth = NoteComponent.noteRadius * 1.2;
+    final Paint bodyPaint = Paint()
+      ..color = ringPaint.color.withValues(alpha: 0.25)
+      ..style = PaintingStyle.fill;
+
+    final Paint bodyBorder = Paint()
+      ..color = ringPaint.color.withValues(alpha: 0.6)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0;
+
+    final RRect sustainCapsule = RRect.fromRectAndRadius(
+      Rect.fromLTRB(
+        center - bodyWidth / 2,
+        tailLocalY,
+        center + bodyWidth / 2,
+        center,
+      ),
+      const Radius.circular(NoteComponent.noteRadius * 0.6),
+    );
+
+    canvas.drawRRect(sustainCapsule, bodyPaint);
+    canvas.drawRRect(sustainCapsule, bodyBorder);
+
+    // Linea centrale brillante
+    final Paint corePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0;
+    canvas.drawLine(
+      Offset(center, tailLocalY),
+      Offset(center, center),
+      corePaint,
+    );
+
+    // 2. Disegna l'anello finale della coda (Tail)
+    final Paint tailPaint = Paint()
+      ..color = ringPaint.color.withValues(alpha: 0.8)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0;
+    canvas.drawCircle(
+      Offset(center, tailLocalY),
+      NoteComponent.noteRadius * 0.7,
+      tailPaint,
+    );
+
+    // 3. Disegna la testa standard (Head)
+    super.render(canvas);
+
+    // 4. Glow animato pulsante se la hold è tenuta attiva
+    if (noteModel.holdStarted &&
+        !noteModel.holdCompleted &&
+        !noteModel.isMissed) {
+      final double pulse =
+          1.0 + 0.15 * ((DateTime.now().millisecondsSinceEpoch % 500) / 500);
+      final Paint activeGlow = Paint()
+        ..color = ringPaint.color.withValues(alpha: 0.4)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15);
+      canvas.drawCircle(
+        Offset(center, center),
+        NoteComponent.noteRadius * 1.5 * pulse,
+        activeGlow,
+      );
+    }
   }
 }

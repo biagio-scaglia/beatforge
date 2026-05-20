@@ -73,10 +73,16 @@ class LaneComponent extends PositionComponent
     size = Vector2(laneWidth, game.size.y);
     position = Vector2(laneIndex * laneWidth, 0);
 
-    if (_isPressed) {
-      _flashTimer += dt;
-      if (_flashTimer >= flashDuration) {
-        _isPressed = false;
+    final bool isCurrentlyPressed = game.controller.isLanePressed(laneIndex);
+    if (isCurrentlyPressed) {
+      _isPressed = true;
+      _flashTimer = 0.0;
+    } else {
+      if (_isPressed) {
+        _flashTimer += dt;
+        if (_flashTimer >= flashDuration) {
+          _isPressed = false;
+        }
       }
     }
   }

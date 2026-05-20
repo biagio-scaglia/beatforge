@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'note_behavior.dart';
 
 /// Giudizi di precisione per il tempismo dei tap.
 enum Judgment {
@@ -26,11 +27,16 @@ class NoteRuntimeModel {
   final int? durationMs;
   final String? direction;
 
-  /// Flag per indicare se la nota è stata colpita
+  /// Flag per indicare se la nota è stata colpita o completata
   bool isHit = false;
 
-  /// Flag per indicare se la nota è stata mancata
+  /// Flag per indicare se la nota è stata mancata (early release o scorrimento oltre limite)
   bool isMissed = false;
+
+  // Campi dedicati alla logica delle Hold Note
+  bool holdStarted = false;
+  bool holdCompleted = false;
+  int? holdLastActiveTimeMs;
 
   NoteRuntimeModel({
     required this.id,
@@ -40,6 +46,22 @@ class NoteRuntimeModel {
     this.durationMs,
     this.direction,
   });
+
+  NoteRuntimeBehavior? _behavior;
+
+  /// Restituisce la runtime strategy associata a questo tipo di nota.
+  NoteRuntimeBehavior get behavior {
+    if (_behavior == null) {
+      if (type == 'hold') {
+        _behavior = HoldNoteBehavior(this);
+      } else if (type == 'flick') {
+        _behavior = FlickNoteBehavior(this);
+      } else {
+        _behavior = TapNoteBehavior(this);
+      }
+    }
+    return _behavior!;
+  }
 }
 
 /// Stato corrente del punteggio e dei giudizi della sessione.

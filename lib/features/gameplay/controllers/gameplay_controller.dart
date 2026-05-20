@@ -41,6 +41,9 @@ class GameplayController extends ChangeNotifier {
   AudioTrack? _track;
   List<NoteRuntimeModel> _notes = [];
 
+  // Traccia lo stato di pressione corrente delle 4 corsie (0-3)
+  final Set<int> _pressedLanes = {};
+
   AudioSyncService? _syncService;
   final ScoringState _scoringState = ScoringState();
   final HealthState _healthState = HealthState();
@@ -264,7 +267,24 @@ class GameplayController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Metodo invocato ad ogni frame del game loop per aggiornare l'accuratezza e rilevare i MISS passati.
+  /// Verifica se una corsia è attualmente tenuta premuta dall'utente.
+  bool isLanePressed(int laneIndex) => _pressedLanes.contains(laneIndex);
+
+  /// Registra la pressione iniziale (down) di una corsia.
+  void pressLane(int laneIndex) {
+    if (_status != GameplayStatus.playing) return;
+    _pressedLanes.add(laneIndex);
+    handleTapDown(laneIndex);
+  }
+
+  /// Registra il rilascio (up) di una corsia.
+  void releaseLane(int laneIndex) {
+    if (_status != GameplayStatus.playing) return;
+    _pressedLanes.remove(laneIndex);
+    handleTapUp(laneIndex);
+  }
+
+  /// Metodo invocato ad ogni frame del game loop per aggiornare l'accuratezza e la tenuta delle note.
   void updateGameplay() {
     if (_status != GameplayStatus.playing || _syncService == null) return;
 
@@ -272,17 +292,27 @@ class GameplayController extends ChangeNotifier {
       _beatmap?.audioOffsetMs ?? 0,
     );
 
-    // Identifica le note che sono passate oltre la finestra massima di precisione (Miss automatico)
     bool stateChanged = false;
-    final int missWindow = difficultyProfile.timingWindowGoodMs;
     for (final note in _notes) {
-      if (!note.isHit &&
-          !note.isMissed &&
-          songTime > note.timeMs + missWindow) {
-        note.isMissed = true;
-        _applyJudgmentEffect(Judgment.miss);
-        _onNoteMissedController.add(note);
+      final wasHit = note.isHit;
+      final wasMissed = note.isMissed;
+
+      final updated = note.behavior.update(songTime, this);
+
+      if (updated) {
         stateChanged = true;
+        // Se la nota è passata allo stato MISS
+        if (note.isMissed && !wasMissed) {
+          _applyJudgmentEffect(Judgment.miss);
+          _onNoteMissedController.add(note);
+        }
+        // Se la nota è stata colpita/completata (es. Hold completata)
+        else if (note.isHit && !wasHit) {
+          _applyJudgmentEffect(Judgment.perfect); // Completamento = Perfect!
+          _onNoteHitController.add(
+            NoteHitEvent(note: note, judgment: Judgment.perfect, offsetMs: 0),
+          );
+        }
       }
     }
 
@@ -291,8 +321,8 @@ class GameplayController extends ChangeNotifier {
     }
   }
 
-  /// Gestisce la pressione del tasto o del touch in una determinata lane (0-3).
-  void handleInput(int lane) {
+  /// Gestisce il tap down su una corsia trovando la nota adatta.
+  void handleTapDown(int lane) {
     if (_status != GameplayStatus.playing || _syncService == null) return;
 
     final songTime = _syncService!.getAdjustedTimeMs(
@@ -300,12 +330,86 @@ class GameplayController extends ChangeNotifier {
     );
     final int goodWindow = difficultyProfile.timingWindowGoodMs;
 
-    // Trova la nota non ancora colpita più vicina temporalmente in questa lane e all'interno della finestra di hits
     NoteRuntimeModel? targetNote;
     int minDiff = 999999;
 
     for (final note in _notes) {
       if (note.lane == lane && !note.isHit && !note.isMissed) {
+        // I tap down colpiscono solo le note normali e l'inizio delle hold
+        if (note.type == 'tap' || (note.type == 'hold' && !note.holdStarted)) {
+          final diff = (songTime - note.timeMs).abs();
+          if (diff <= goodWindow && diff < minDiff) {
+            minDiff = diff;
+            targetNote = note;
+          }
+        }
+      }
+    }
+
+    if (targetNote != null) {
+      final diff = songTime - targetNote.timeMs;
+      final judgment = targetNote.behavior.handleTapDown(songTime, this);
+
+      if (judgment != null) {
+        _applyJudgmentEffect(judgment);
+        _onNoteHitController.add(
+          NoteHitEvent(note: targetNote, judgment: judgment, offsetMs: diff),
+        );
+        notifyListeners();
+      }
+    }
+  }
+
+  /// Gestisce il rilascio su una corsia valutando le hold note attive.
+  void handleTapUp(int lane) {
+    if (_status != GameplayStatus.playing || _syncService == null) return;
+
+    final songTime = _syncService!.getAdjustedTimeMs(
+      _beatmap?.audioOffsetMs ?? 0,
+    );
+
+    for (final note in _notes) {
+      if (note.lane == lane &&
+          note.type == 'hold' &&
+          note.holdStarted &&
+          !note.holdCompleted &&
+          !note.isMissed) {
+        final endTime = note.timeMs + (note.durationMs ?? 0);
+        final diff = songTime - endTime;
+        final judgment = note.behavior.handleTapUp(songTime, this);
+
+        if (judgment != null) {
+          _applyJudgmentEffect(judgment);
+          if (judgment != Judgment.miss) {
+            _onNoteHitController.add(
+              NoteHitEvent(note: note, judgment: judgment, offsetMs: diff),
+            );
+          } else {
+            _onNoteMissedController.add(note);
+          }
+          notifyListeners();
+        }
+      }
+    }
+  }
+
+  /// Gestisce il flick (swipe) su una corsia trovando la nota flick adatta.
+  void handleFlick(int lane, String direction) {
+    if (_status != GameplayStatus.playing || _syncService == null) return;
+
+    final songTime = _syncService!.getAdjustedTimeMs(
+      _beatmap?.audioOffsetMs ?? 0,
+    );
+    final int goodWindow = difficultyProfile.timingWindowGoodMs;
+
+    NoteRuntimeModel? targetNote;
+    int minDiff = 999999;
+
+    for (final note in _notes) {
+      if (note.lane == lane &&
+          note.type == 'flick' &&
+          !note.isHit &&
+          !note.isMissed) {
         final diff = (songTime - note.timeMs).abs();
         if (diff <= goodWindow && diff < minDiff) {
           minDiff = diff;
@@ -314,24 +418,26 @@ class GameplayController extends ChangeNotifier {
       }
     }
 
-    // Se troviamo una nota valida, calcoliamo il giudizio
     if (targetNote != null) {
       final diff = songTime - targetNote.timeMs;
-      final judgment = _evaluateTap(diff);
-
-      targetNote.isHit = true;
-      _applyJudgmentEffect(judgment);
-
-      _onNoteHitController.add(
-        NoteHitEvent(note: targetNote, judgment: judgment, offsetMs: diff),
+      final judgment = targetNote.behavior.handleFlick(
+        songTime,
+        direction,
+        this,
       );
 
-      notifyListeners();
+      if (judgment != null) {
+        _applyJudgmentEffect(judgment);
+        _onNoteHitController.add(
+          NoteHitEvent(note: targetNote, judgment: judgment, offsetMs: diff),
+        );
+        notifyListeners();
+      }
     }
   }
 
-  /// Valuta la precisione del millisecondo rispetto alle finestre.
-  Judgment _evaluateTap(int diffMs) {
+  /// Valuta la precisione del millisecondo rispetto alle finestre di timing del profilo.
+  Judgment evaluateTap(int diffMs) {
     final absDiff = diffMs.abs();
     final profile = difficultyProfile;
     if (absDiff <= profile.timingWindowPerfectMs) return Judgment.perfect;
@@ -381,6 +487,7 @@ class GameplayController extends ChangeNotifier {
 
   /// Ripristina lo stato del gameplay per riavviare la partita.
   Future<void> restartGame() async {
+    _pressedLanes.clear();
     _countdownTimer?.cancel();
     _playerStateSubscription?.cancel();
     await playerService.stop();
@@ -399,6 +506,7 @@ class GameplayController extends ChangeNotifier {
 
   /// Interrompe del tutto il gameplay e pulisce le risorse.
   Future<void> quitGame() async {
+    _pressedLanes.clear();
     _countdownTimer?.cancel();
     _playerStateSubscription?.cancel();
     _syncService?.dispose();
@@ -407,6 +515,7 @@ class GameplayController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _pressedLanes.clear();
     _countdownTimer?.cancel();
     _playerStateSubscription?.cancel();
     _syncService?.dispose();
