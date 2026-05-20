@@ -113,8 +113,56 @@ class GameplayController extends ChangeNotifier {
         );
       }).toList();
 
+      // Se non ci sono note registrate (es. canzone appena importata senza note salvate),
+      // generiamo un tracciato ritmico procedurale basato sul BPM per renderla subito giocabile.
+      if (_notes.isEmpty) {
+        final bpm = _beatmap?.baseBpm ?? 120.0;
+        final double beatMs = 60000.0 / bpm;
+        final int maxTimeMs = 300000; // Genera note per max 5 minuti (la sessione si chiude alla fine dell'audio)
+        int currentMs = 2000; // Inizia dopo 2 secondi
+        int step = 0;
+
+        while (currentMs < maxTimeMs) {
+          final int lane = step % 4;
+          final int patternIndex = (step ~/ 4) % 4;
+
+          String type = 'tap';
+          int? durationMs;
+          String? direction;
+
+          if (patternIndex == 3 && step % 4 == 0) {
+            type = 'hold';
+            durationMs = (beatMs * 1.5).toInt();
+          } else if (patternIndex == 2 && step % 2 == 1) {
+            type = 'flick';
+            direction = lane % 2 == 0 ? 'up' : 'down';
+          }
+
+          _notes.add(
+            NoteRuntimeModel(
+              id: step,
+              timeMs: currentMs,
+              lane: lane,
+              type: type,
+              durationMs: durationMs,
+              direction: direction,
+            ),
+          );
+
+          // Variazione ritmica: raddoppio velocità su pattern alternati
+          if (patternIndex == 1) {
+            currentMs += (beatMs / 2).toInt();
+          } else {
+            currentMs += beatMs.toInt();
+          }
+          step++;
+        }
+      }
+
       // Ordina le note per tempo di esecuzione
       _notes.sort((a, b) => a.timeMs.compareTo(b.timeMs));
+
+      debugPrint("Gameplay loaded: ${_notes.length} notes loaded/generated for beatmap $beatmapId");
 
       _isLoading = false;
       notifyListeners();
