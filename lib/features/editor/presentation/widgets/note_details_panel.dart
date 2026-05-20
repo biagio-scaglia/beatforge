@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/theme/app_tokens.dart';
 import '../../../../shared/widgets/glow_text.dart';
+import '../../../../shared/services/audio_player_service_provider.dart';
+import '../../../../shared/widgets/beatchan_sprite.dart';
 import '../../../../shared/widgets/neon_button.dart';
 import '../beatmap_editor_controller.dart';
 
@@ -39,6 +41,7 @@ class NoteDetailsPanel extends StatelessWidget {
     BuildContext context,
     BeatmapEditorController controller,
   ) {
+    final playerService = AudioPlayerServiceProvider.of(context, listen: false);
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -167,6 +170,23 @@ class NoteDetailsPanel extends StatelessWidget {
               color: AppTheme.textSecondary,
               fontSize: 11,
               height: 1.5,
+            ),
+          ),
+          const SizedBox(height: AppTokens.spacingLg),
+          const Divider(color: AppTheme.borderSubtle),
+          const SizedBox(height: AppTokens.spacingMd),
+          Center(
+            child: StreamBuilder<bool>(
+              stream: playerService.player.playingStream,
+              initialData: playerService.player.playing,
+              builder: (context, snapshot) {
+                final bool isPlaying = snapshot.data ?? false;
+                return BeatChanSprite(
+                  isPlaying: isPlaying,
+                  width: 90,
+                  height: 80,
+                );
+              },
             ),
           ),
         ],

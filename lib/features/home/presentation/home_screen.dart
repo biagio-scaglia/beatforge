@@ -165,7 +165,7 @@ class HomeScreen extends StatelessWidget {
           child: Center(
             child: BeatChanHeroComposition(
               size: 320,
-              pose: BeatChanPose.music,
+              pose: BeatChanPose.fullBody,
               isFloating: true,
             ),
           ),
@@ -182,7 +182,7 @@ class HomeScreen extends StatelessWidget {
         // Mascotte centrale in scala ridotta per preservare lo spazio
         const BeatChanHeroComposition(
           size: 200,
-          pose: BeatChanPose.music,
+          pose: BeatChanPose.fullBody,
           isFloating: true,
         ),
         const SizedBox(height: AppTokens.spacingLg),

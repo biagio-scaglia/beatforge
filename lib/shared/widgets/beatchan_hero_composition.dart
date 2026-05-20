@@ -19,7 +19,7 @@ class BeatChanHeroComposition extends StatelessWidget {
   const BeatChanHeroComposition({
     super.key,
     this.size = 320.0,
-    this.pose = BeatChanPose.music,
+    this.pose = BeatChanPose.fullBody,
     this.isFloating = true,
   });
 

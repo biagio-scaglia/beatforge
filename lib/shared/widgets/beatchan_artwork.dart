@@ -10,6 +10,9 @@ enum BeatChanPose {
 
   /// Posa musicale (ottimizzata)
   music,
+
+  /// Posa a figura intera (ottimizzata)
+  fullBody,
 }
 
 /// Widget riutilizzabile per visualizzare la mascotte Beat-chan.
@@ -91,9 +94,18 @@ class _BeatChanArtworkState extends State<BeatChanArtwork>
 
   @override
   Widget build(BuildContext context) {
-    final String assetPath = widget.pose == BeatChanPose.music
-        ? AppAssets.beatchanMusic
-        : AppAssets.beatchanDefault;
+    final String assetPath;
+    switch (widget.pose) {
+      case BeatChanPose.music:
+        assetPath = AppAssets.beatchanMusic;
+        break;
+      case BeatChanPose.fullBody:
+        assetPath = AppAssets.beatchanFullBody;
+        break;
+      case BeatChanPose.standard:
+        assetPath = AppAssets.beatchanDefault;
+        break;
+    }
 
     Widget imageWidget = Image.asset(
       assetPath,
