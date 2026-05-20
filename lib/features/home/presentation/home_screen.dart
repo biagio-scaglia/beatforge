@@ -5,6 +5,7 @@ import '../../../shared/widgets/glow_text.dart';
 import '../../../shared/widgets/neon_card.dart';
 import '../../../shared/widgets/neon_button.dart';
 import '../../../shared/widgets/beatchan_artwork.dart';
+import '../../../shared/widgets/beatchan_hero_composition.dart';
 
 /// La schermata principale (Home) di BeatForge.
 ///
@@ -158,17 +159,14 @@ class HomeScreen extends StatelessWidget {
         ),
         const SizedBox(width: AppTokens.spacingXl),
 
-        // Colonna Destra: Mascotte in posa musicale all'interno di una cornice
+        // Colonna Destra: Mascotte in posa musicale a figura libera
         const Expanded(
           flex: 4,
           child: Center(
-            child: BeatChanArtwork(
+            child: BeatChanHeroComposition(
+              size: 320,
               pose: BeatChanPose.music,
-              height: 320,
-              width: 320,
               isFloating: true,
-              hasFrame: true,
-              glowColor: AppTheme.secondaryMagenta,
             ),
           ),
         ),
@@ -182,13 +180,10 @@ class HomeScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // Mascotte centrale in scala ridotta per preservare lo spazio
-        const BeatChanArtwork(
+        const BeatChanHeroComposition(
+          size: 200,
           pose: BeatChanPose.music,
-          height: 180,
-          width: 180,
           isFloating: true,
-          hasFrame: true,
-          glowColor: AppTheme.secondaryMagenta,
         ),
         const SizedBox(height: AppTokens.spacingLg),
 
