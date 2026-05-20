@@ -31,7 +31,8 @@ class AudioPlayerService {
     try {
       if (currentTrack?.id == track.id) {
         if (!_player.playing) {
-          await _player.play();
+          _player
+              .play(); // Non si esegue l'await perché il Future di just_audio completa solo a fine brano o alla pausa
         }
         return;
       }
@@ -44,7 +45,7 @@ class AudioPlayerService {
       final source = await createAudioSource(track, repository);
 
       await _player.setAudioSource(source);
-      await _player.play();
+      _player.play(); // Non si esegue l'await per evitare blocchi
     } catch (e) {
       debugPrint("Errore di riproduzione audio: $e");
       currentTrackNotifier.value = null;
@@ -60,7 +61,7 @@ class AudioPlayerService {
   /// Riprende la riproduzione del brano corrente.
   Future<void> resume() async {
     if (currentTrack != null) {
-      await _player.play();
+      _player.play(); // Non si esegue l'await
     }
   }
 

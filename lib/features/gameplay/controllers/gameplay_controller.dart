@@ -151,6 +151,7 @@ class GameplayController extends ChangeNotifier {
 
     try {
       _status = GameplayStatus.playing;
+      notifyListeners();
 
       // Inizializza l'AudioSyncService prima dell'avvio reale
       _syncService = AudioSyncService(playerService);
