@@ -5,6 +5,7 @@ import '../../../data/local/database/app_database.dart';
 import '../../../data/repositories/beatmap_repository.dart';
 import '../../../data/repositories/audio_repository.dart';
 import '../../editor/presentation/beatmap_editor_screen.dart';
+import '../../gameplay/presentation/gameplay_screen.dart';
 import '../../../shared/services/audio_player_service.dart';
 import '../../../shared/services/audio_player_service_provider.dart';
 import '../../../shared/theme/app_theme.dart';
@@ -412,6 +413,44 @@ class _BeatmapRowItem extends StatelessWidget {
               // Pulsanti azione della beatmap
               Column(
                 children: [
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                      label: const Text(
+                        'AVVIA PARTITA',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontFamily: 'Orbitron',
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.secondaryMagenta.withValues(
+                          alpha: 0.15,
+                        ),
+                        foregroundColor: AppTheme.secondaryMagenta,
+                        side: const BorderSide(
+                          color: AppTheme.secondaryMagenta,
+                          width: 1.2,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: () {
+                        // Chiude prima il dialogo
+                        Navigator.of(context).pop();
+                        // Apre la schermata del gameplay
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (dialogContext) =>
+                                GameplayScreen(beatmapId: beatmap.id),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(

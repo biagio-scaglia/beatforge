@@ -53,6 +53,11 @@ class AudioRepository {
     });
   }
 
+  /// Recupera tutte le tracce disponibili nel database.
+  Future<List<AudioTrack>> getTracks() {
+    return _db.select(_db.audioTracks).get();
+  }
+
   /// Recupera tutte le categorie disponibili nel database.
   Future<List<TrackCategory>> getCategories() {
     return _db.select(_db.trackCategories).get();

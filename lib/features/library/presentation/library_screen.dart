@@ -308,13 +308,26 @@ class _LibraryScreenState extends State<LibraryScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                GlowText(
-                                  'LIBRERIA',
-                                  glowColor: AppTheme.primaryCyan,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .displaySmall
-                                      ?.copyWith(color: AppTheme.primaryCyan),
+                                FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: Alignment.centerLeft,
+                                  child: GlowText(
+                                    'LIBRERIA',
+                                    glowColor: AppTheme.primaryCyan,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .displaySmall
+                                        ?.copyWith(
+                                          color: AppTheme.primaryCyan,
+                                          fontSize:
+                                              MediaQuery.of(
+                                                    context,
+                                                  ).size.width <
+                                                  500
+                                              ? 28
+                                              : 36,
+                                        ),
+                                  ),
                                 ),
                                 const SizedBox(height: AppTokens.spacingSm),
                                 Text(
