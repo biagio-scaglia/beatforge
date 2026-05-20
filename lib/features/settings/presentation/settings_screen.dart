@@ -24,7 +24,12 @@ class SettingsScreen extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 800),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppTokens.spacingLg),
+              padding: EdgeInsets.fromLTRB(
+                AppTokens.spacingLg,
+                AppTokens.spacingLg,
+                AppTokens.spacingLg,
+                AppTokens.spacingXl,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -260,11 +265,24 @@ class SettingsScreen extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: SegmentedButton<String>(
+            showSelectedIcon: false,
             segments: const [
-              ButtonSegment(value: 'Easy', label: Text('Easy')),
-              ButtonSegment(value: 'Normal', label: Text('Normal')),
-              ButtonSegment(value: 'Hard', label: Text('Hard')),
-              ButtonSegment(value: 'Expert', label: Text('Expert')),
+              ButtonSegment(
+                value: 'Easy',
+                label: Text('Easy', overflow: TextOverflow.ellipsis),
+              ),
+              ButtonSegment(
+                value: 'Normal',
+                label: Text('Normal', overflow: TextOverflow.ellipsis),
+              ),
+              ButtonSegment(
+                value: 'Hard',
+                label: Text('Hard', overflow: TextOverflow.ellipsis),
+              ),
+              ButtonSegment(
+                value: 'Expert',
+                label: Text('Expert', overflow: TextOverflow.ellipsis),
+              ),
             ],
             selected: {controller.defaultDifficulty},
             onSelectionChanged: (Set<String> newSelection) {
@@ -272,6 +290,12 @@ class SettingsScreen extends StatelessWidget {
               controller.setDefaultDifficulty(newSelection.first);
             },
             style: ButtonStyle(
+              textStyle: const WidgetStatePropertyAll(
+                TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              padding: const WidgetStatePropertyAll(
+                EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+              ),
               backgroundColor: WidgetStateProperty.resolveWith<Color>((
                 Set<WidgetState> states,
               ) {

@@ -104,12 +104,20 @@ class FlickNoteBehavior extends NoteRuntimeBehavior {
 
     final diff = songTimeMs - model.timeMs;
     if (diff.abs() <= controller.difficultyProfile.timingWindowGoodMs) {
-      // Se la direzione non è specificata o coincide con quella dell'input
-      if (model.direction == null ||
-          model.direction!.toLowerCase() == direction.toLowerCase()) {
+      // Accetta il flick se:
+      // 1. La nota non ha una direzione specifica (qualunque swipe va bene)
+      // 2. La direzione corrisponde esattamente
+      final noteDir = model.direction?.toLowerCase();
+      if (noteDir == null ||
+          noteDir.isEmpty ||
+          noteDir == direction.toLowerCase()) {
         model.isHit = true;
         return controller.evaluateTap(diff);
       }
+      // Direzione sbagliata ma within window: registriamo lo stesso (leniency)
+      // così l'utente non si ritrova nota impossibile da colpire
+      model.isHit = true;
+      return Judgment.good;
     }
     return null;
   }

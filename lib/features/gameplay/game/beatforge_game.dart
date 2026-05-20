@@ -51,6 +51,10 @@ class BeatForgeGame extends FlameGame
   // Traccia le coordinate iniziali e i tempi dei gesti di trascinamento (multi-touch)
   final Map<int, Offset> _dragStartPositions = {};
   final Map<int, int> _dragStartTimes = {};
+  // Traccia se il drag di un pointer ha già triggerato un flick
+  final Set<int> _dragFlicked = {};
+  // Traccia la corsia dove è iniziato il drag per il rilascio hold
+  final Map<int, int> _dragStartLanes = {};
 
   /// Registra la pressione di un tasto/tocco in una corsia
   void pressLane(int laneIndex) {
@@ -97,15 +101,20 @@ class BeatForgeGame extends FlameGame
     super.onDragStart(event);
     final lane = _getLaneFromX(event.localPosition.x);
     if (lane != null) {
-      pressLane(lane);
+      // Non chiamiamo pressLane subito: aspettiamo di capire se è un flick o un hold/tap.
+      // La pressione verrà registrata solo se il drag non si risolve in un flick.
       _dragStartPositions[event.pointerId] = event.localPosition.toOffset();
       _dragStartTimes[event.pointerId] = DateTime.now().millisecondsSinceEpoch;
+      _dragStartLanes[event.pointerId] = lane;
     }
   }
 
   @override
   void onDragUpdate(DragUpdateEvent event) {
     super.onDragUpdate(event);
+    // Se questo pointer ha già generato un flick, ignoriamo i successivi update
+    if (_dragFlicked.contains(event.pointerId)) return;
+
     final startPos = _dragStartPositions[event.pointerId];
     final startTime = _dragStartTimes[event.pointerId];
     if (startPos != null && startTime != null) {
@@ -114,8 +123,8 @@ class BeatForgeGame extends FlameGame
       final dist = delta.distance;
       final elapsed = DateTime.now().millisecondsSinceEpoch - startTime;
 
-      // Se lo swipe supera una certa distanza velocemente
-      if (dist > 30.0 && elapsed < 250) {
+      // Soglia più generosa: 20px di distanza in 400ms (era 30px / 250ms)
+      if (dist > 20.0 && elapsed < 400) {
         final lane = _getLaneFromX(startPos.dx);
         if (lane != null) {
           // Determina la direzione del flick
@@ -128,6 +137,8 @@ class BeatForgeGame extends FlameGame
 
           controller.handleFlick(lane, direction);
 
+          // Segnala che questo pointer ha già fliccato (non triggerare pressLane al rilascio)
+          _dragFlicked.add(event.pointerId);
           _dragStartPositions.remove(event.pointerId);
           _dragStartTimes.remove(event.pointerId);
         }
@@ -138,29 +149,36 @@ class BeatForgeGame extends FlameGame
   @override
   void onDragEnd(DragEndEvent event) {
     super.onDragEnd(event);
-    final startPos = _dragStartPositions[event.pointerId];
-    if (startPos != null) {
-      final lane = _getLaneFromX(startPos.dx);
+    // Se il drag non ha triggerato un flick, lo trattiamo come tap/hold
+    if (!_dragFlicked.contains(event.pointerId)) {
+      final lane = _dragStartLanes[event.pointerId];
       if (lane != null) {
+        // Registra press + release per catturare tap normali o hold brevi
+        pressLane(lane);
         releaseLane(lane);
       }
+    } else {
+      // Era un flick: rilascia comunque la corsia per sicurezza
+      final lane = _dragStartLanes[event.pointerId];
+      if (lane != null) releaseLane(lane);
     }
     _dragStartPositions.remove(event.pointerId);
     _dragStartTimes.remove(event.pointerId);
+    _dragStartLanes.remove(event.pointerId);
+    _dragFlicked.remove(event.pointerId);
   }
 
   @override
   void onDragCancel(DragCancelEvent event) {
     super.onDragCancel(event);
-    final startPos = _dragStartPositions[event.pointerId];
-    if (startPos != null) {
-      final lane = _getLaneFromX(startPos.dx);
-      if (lane != null) {
-        releaseLane(lane);
-      }
+    if (!_dragFlicked.contains(event.pointerId)) {
+      final lane = _dragStartLanes[event.pointerId];
+      if (lane != null) releaseLane(lane);
     }
     _dragStartPositions.remove(event.pointerId);
     _dragStartTimes.remove(event.pointerId);
+    _dragStartLanes.remove(event.pointerId);
+    _dragFlicked.remove(event.pointerId);
   }
 
   @override
