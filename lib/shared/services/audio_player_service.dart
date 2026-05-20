@@ -15,6 +15,7 @@ class AudioPlayerService {
 
   AudioTrack? get currentTrack => currentTrackNotifier.value;
   AudioPlayer get player => _player;
+  bool get isPlaying => _player.playing;
 
   /// Stream che emette lo stato di riproduzione (loading, playing, idle).
   Stream<PlayerState> get playerStateStream => _player.playerStateStream;

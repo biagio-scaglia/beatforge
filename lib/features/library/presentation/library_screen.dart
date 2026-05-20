@@ -9,6 +9,7 @@ import '../../../shared/theme/app_tokens.dart';
 import '../../../shared/widgets/glow_text.dart';
 import '../../../shared/widgets/neon_button.dart';
 import '../../../shared/widgets/neon_list_tile.dart';
+import 'beatmap_dialog.dart';
 
 /// La schermata per la gestione della libreria musicale dei beatmap locali.
 ///
@@ -171,6 +172,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
             );
           },
         );
+      },
+    );
+  }
+
+  /// Mostra il dialogo di gestione delle beatmap per la traccia.
+  void _showBeatmapDialog(BuildContext context, AudioTrack track) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return BeatmapDialog(track: track);
       },
     );
   }
@@ -439,6 +451,17 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
+                                      IconButton(
+                                        icon: Icon(
+                                          Icons.layers_outlined,
+                                          color: activeColor,
+                                        ),
+                                        tooltip: 'Gestisci Beatmap',
+                                        onPressed: () => _showBeatmapDialog(
+                                          context,
+                                          song,
+                                        ),
+                                      ),
                                       IconButton(
                                         icon: const Icon(
                                           Icons.label_outline_rounded,

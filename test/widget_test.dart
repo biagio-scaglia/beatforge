@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:beatforge/main.dart';
 import 'package:beatforge/data/local/database/app_database.dart';
 import 'package:beatforge/data/repositories/audio_repository.dart';
+import 'package:beatforge/data/repositories/beatmap_repository.dart';
 import 'package:beatforge/shared/services/audio_player_service.dart';
 import 'package:beatforge/shared/services/audio_player_service_provider.dart';
 
@@ -15,14 +16,18 @@ void main() {
   testWidgets('BeatForge smoke test', (WidgetTester tester) async {
     final database = AppDatabase();
     final repository = AudioRepository(database);
+    final beatmapRepository = BeatmapRepository(database);
     final playerService = AudioPlayerService();
 
     await tester.pumpWidget(
       AudioRepositoryProvider(
         repository: repository,
-        child: AudioPlayerServiceProvider(
-          service: playerService,
-          child: const BeatForgeApp(),
+        child: BeatmapRepositoryProvider(
+          repository: beatmapRepository,
+          child: AudioPlayerServiceProvider(
+            service: playerService,
+            child: const BeatForgeApp(),
+          ),
         ),
       ),
     );

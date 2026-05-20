@@ -30,10 +30,12 @@ Le fondamenta dell'interfaccia utente responsive, del sistema di navigazione, de
 - **Riproduzione Audio Locale**: Player audio reale integrato basato su `just_audio`, in grado di caricare brani da file system (su native) e da byte array in database (su web) tramite Object URLs.
 - **Mini-Player Neon Persistente**: Pannello di controllo audio con slider per visualizzazione avanzata e seek temporale, pulsanti play/pause/stop e indicatore del tempo.
 - **Prevenzione Memory Leak**: Revoca automatica dei Blob URL in memoria all'avvio di una nuova traccia o al reset del player su piattaforme web.
-- **Database Locale Drift (SQLite)**: Persistenza affidabile per tracce, categorie e collegamenti molti-a-molti.
+- **Database Locale Drift (SQLite) v2**: Persistenza affidabile per tracce, categorie, collegamenti molti-a-molti, beatmap, timing points (BPM e metriche) e note (tap, hold, flick).
 - **Gestione Categorie**: Seed iniziale di categorie (*Practice*, *Favorites*, *Test*, *Custom*) e possibilità per l'utente di associare o rimuovere tag ai brani tramite dialog interattivo.
+- **Dettagli e Gestione Beatmap**: Dialogo dedicato per aggiungere, visualizzare ed eliminare beatmap personalizzate associate a ciascuna traccia della libreria.
+- **Simulatore Note in Tempo Reale**: Visualizzazione interattiva dei log di gameplay che mostra l'attivazione in tempo reale delle note e dei timing points in sincrono al millisecondo con lo stream del player audio.
 - **Gestione del File System**: Cancellazione fisica del file audio dal disco su piattaforme native all'eliminazione del brano dalla libreria.
-- **Supporto Web (Chrome)**: Gestione dei limites di sandboxing del browser tramite archiviazione dei byte in formato BLOB (`AudioTrackData`) e sincronizzazione asincrona.
+- **Supporto Web (Chrome)**: Gestione dei limiti di sandboxing del browser tramite archiviazione dei byte in formato BLOB (`AudioTrackData`) e sincronizzazione asincrona.
 
 ---
 
@@ -43,7 +45,7 @@ Le fondamenta dell'interfaccia utente responsive, del sistema di navigazione, de
 - [x] Integrazione del database Drift con supporto multi-piattaforma.
 - [x] Importazione, categorizzazione ed eliminazione di tracce audio locali.
 - [x] Implementazione del player audio locale (riproduzione da file system/database).
-- [ ] Definizione dello standard e della struttura dati per le beatmap.
+- [x] Definizione dello standard e della struttura dati per le beatmap (tabelle Drift v2).
 - [ ] Creazione dell'editor visivo delle note musicali.
 - [ ] Implementazione dell'engine di gameplay (timing dei tap, scorrimento note, punteggi).
 
@@ -70,7 +72,7 @@ lib/
 ├── data/                 # Layer di accesso ai dati
 │   ├── local/
 │   │   └── database/     # Definizione delle tabelle e configurazione di Drift (app_database.dart)
-│   └── repositories/     # Logica di business e astrazione query (AudioRepository)
+│   └── repositories/     # Logica di business e astrazione query (AudioRepository, BeatmapRepository)
 ├── features/             # Funzionalità dell'app divise per modulo
 │   ├── home/             # Schermata principale e collegamenti rapidi
 │   ├── library/          # Schermata di importazione e gestione brani (Libreria)

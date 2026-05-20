@@ -55,6 +55,17 @@ class $AudioTracksTable extends AudioTracks
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _mimeTypeMeta = const VerificationMeta(
+    'mimeType',
+  );
+  @override
+  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
+    'mime_type',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _sizeBytesMeta = const VerificationMeta(
     'sizeBytes',
   );
@@ -118,6 +129,7 @@ class $AudioTracksTable extends AudioTracks
     displayName,
     fileName,
     extension,
+    mimeType,
     sizeBytes,
     localPath,
     webStorageKey,
@@ -165,6 +177,12 @@ class $AudioTracksTable extends AudioTracks
       );
     } else if (isInserting) {
       context.missing(_extensionMeta);
+    }
+    if (data.containsKey('mime_type')) {
+      context.handle(
+        _mimeTypeMeta,
+        mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta),
+      );
     }
     if (data.containsKey('size_bytes')) {
       context.handle(
@@ -226,6 +244,10 @@ class $AudioTracksTable extends AudioTracks
         DriftSqlType.string,
         data['${effectivePrefix}extension'],
       )!,
+      mimeType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mime_type'],
+      ),
       sizeBytes: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}size_bytes'],
@@ -260,6 +282,7 @@ class AudioTrack extends DataClass implements Insertable<AudioTrack> {
   final String displayName;
   final String fileName;
   final String extension;
+  final String? mimeType;
   final int sizeBytes;
   final String? localPath;
   final String? webStorageKey;
@@ -270,6 +293,7 @@ class AudioTrack extends DataClass implements Insertable<AudioTrack> {
     required this.displayName,
     required this.fileName,
     required this.extension,
+    this.mimeType,
     required this.sizeBytes,
     this.localPath,
     this.webStorageKey,
@@ -283,6 +307,9 @@ class AudioTrack extends DataClass implements Insertable<AudioTrack> {
     map['display_name'] = Variable<String>(displayName);
     map['file_name'] = Variable<String>(fileName);
     map['extension'] = Variable<String>(extension);
+    if (!nullToAbsent || mimeType != null) {
+      map['mime_type'] = Variable<String>(mimeType);
+    }
     map['size_bytes'] = Variable<int>(sizeBytes);
     if (!nullToAbsent || localPath != null) {
       map['local_path'] = Variable<String>(localPath);
@@ -301,6 +328,9 @@ class AudioTrack extends DataClass implements Insertable<AudioTrack> {
       displayName: Value(displayName),
       fileName: Value(fileName),
       extension: Value(extension),
+      mimeType: mimeType == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mimeType),
       sizeBytes: Value(sizeBytes),
       localPath: localPath == null && nullToAbsent
           ? const Value.absent()
@@ -323,6 +353,7 @@ class AudioTrack extends DataClass implements Insertable<AudioTrack> {
       displayName: serializer.fromJson<String>(json['displayName']),
       fileName: serializer.fromJson<String>(json['fileName']),
       extension: serializer.fromJson<String>(json['extension']),
+      mimeType: serializer.fromJson<String?>(json['mimeType']),
       sizeBytes: serializer.fromJson<int>(json['sizeBytes']),
       localPath: serializer.fromJson<String?>(json['localPath']),
       webStorageKey: serializer.fromJson<String?>(json['webStorageKey']),
@@ -338,6 +369,7 @@ class AudioTrack extends DataClass implements Insertable<AudioTrack> {
       'displayName': serializer.toJson<String>(displayName),
       'fileName': serializer.toJson<String>(fileName),
       'extension': serializer.toJson<String>(extension),
+      'mimeType': serializer.toJson<String?>(mimeType),
       'sizeBytes': serializer.toJson<int>(sizeBytes),
       'localPath': serializer.toJson<String?>(localPath),
       'webStorageKey': serializer.toJson<String?>(webStorageKey),
@@ -351,6 +383,7 @@ class AudioTrack extends DataClass implements Insertable<AudioTrack> {
     String? displayName,
     String? fileName,
     String? extension,
+    Value<String?> mimeType = const Value.absent(),
     int? sizeBytes,
     Value<String?> localPath = const Value.absent(),
     Value<String?> webStorageKey = const Value.absent(),
@@ -361,6 +394,7 @@ class AudioTrack extends DataClass implements Insertable<AudioTrack> {
     displayName: displayName ?? this.displayName,
     fileName: fileName ?? this.fileName,
     extension: extension ?? this.extension,
+    mimeType: mimeType.present ? mimeType.value : this.mimeType,
     sizeBytes: sizeBytes ?? this.sizeBytes,
     localPath: localPath.present ? localPath.value : this.localPath,
     webStorageKey: webStorageKey.present
@@ -377,6 +411,7 @@ class AudioTrack extends DataClass implements Insertable<AudioTrack> {
           : this.displayName,
       fileName: data.fileName.present ? data.fileName.value : this.fileName,
       extension: data.extension.present ? data.extension.value : this.extension,
+      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
       sizeBytes: data.sizeBytes.present ? data.sizeBytes.value : this.sizeBytes,
       localPath: data.localPath.present ? data.localPath.value : this.localPath,
       webStorageKey: data.webStorageKey.present
@@ -394,6 +429,7 @@ class AudioTrack extends DataClass implements Insertable<AudioTrack> {
           ..write('displayName: $displayName, ')
           ..write('fileName: $fileName, ')
           ..write('extension: $extension, ')
+          ..write('mimeType: $mimeType, ')
           ..write('sizeBytes: $sizeBytes, ')
           ..write('localPath: $localPath, ')
           ..write('webStorageKey: $webStorageKey, ')
@@ -409,6 +445,7 @@ class AudioTrack extends DataClass implements Insertable<AudioTrack> {
     displayName,
     fileName,
     extension,
+    mimeType,
     sizeBytes,
     localPath,
     webStorageKey,
@@ -423,6 +460,7 @@ class AudioTrack extends DataClass implements Insertable<AudioTrack> {
           other.displayName == this.displayName &&
           other.fileName == this.fileName &&
           other.extension == this.extension &&
+          other.mimeType == this.mimeType &&
           other.sizeBytes == this.sizeBytes &&
           other.localPath == this.localPath &&
           other.webStorageKey == this.webStorageKey &&
@@ -435,6 +473,7 @@ class AudioTracksCompanion extends UpdateCompanion<AudioTrack> {
   final Value<String> displayName;
   final Value<String> fileName;
   final Value<String> extension;
+  final Value<String?> mimeType;
   final Value<int> sizeBytes;
   final Value<String?> localPath;
   final Value<String?> webStorageKey;
@@ -445,6 +484,7 @@ class AudioTracksCompanion extends UpdateCompanion<AudioTrack> {
     this.displayName = const Value.absent(),
     this.fileName = const Value.absent(),
     this.extension = const Value.absent(),
+    this.mimeType = const Value.absent(),
     this.sizeBytes = const Value.absent(),
     this.localPath = const Value.absent(),
     this.webStorageKey = const Value.absent(),
@@ -456,6 +496,7 @@ class AudioTracksCompanion extends UpdateCompanion<AudioTrack> {
     required String displayName,
     required String fileName,
     required String extension,
+    this.mimeType = const Value.absent(),
     required int sizeBytes,
     this.localPath = const Value.absent(),
     this.webStorageKey = const Value.absent(),
@@ -470,6 +511,7 @@ class AudioTracksCompanion extends UpdateCompanion<AudioTrack> {
     Expression<String>? displayName,
     Expression<String>? fileName,
     Expression<String>? extension,
+    Expression<String>? mimeType,
     Expression<int>? sizeBytes,
     Expression<String>? localPath,
     Expression<String>? webStorageKey,
@@ -481,6 +523,7 @@ class AudioTracksCompanion extends UpdateCompanion<AudioTrack> {
       if (displayName != null) 'display_name': displayName,
       if (fileName != null) 'file_name': fileName,
       if (extension != null) 'extension': extension,
+      if (mimeType != null) 'mime_type': mimeType,
       if (sizeBytes != null) 'size_bytes': sizeBytes,
       if (localPath != null) 'local_path': localPath,
       if (webStorageKey != null) 'web_storage_key': webStorageKey,
@@ -494,6 +537,7 @@ class AudioTracksCompanion extends UpdateCompanion<AudioTrack> {
     Value<String>? displayName,
     Value<String>? fileName,
     Value<String>? extension,
+    Value<String?>? mimeType,
     Value<int>? sizeBytes,
     Value<String?>? localPath,
     Value<String?>? webStorageKey,
@@ -505,6 +549,7 @@ class AudioTracksCompanion extends UpdateCompanion<AudioTrack> {
       displayName: displayName ?? this.displayName,
       fileName: fileName ?? this.fileName,
       extension: extension ?? this.extension,
+      mimeType: mimeType ?? this.mimeType,
       sizeBytes: sizeBytes ?? this.sizeBytes,
       localPath: localPath ?? this.localPath,
       webStorageKey: webStorageKey ?? this.webStorageKey,
@@ -527,6 +572,9 @@ class AudioTracksCompanion extends UpdateCompanion<AudioTrack> {
     }
     if (extension.present) {
       map['extension'] = Variable<String>(extension.value);
+    }
+    if (mimeType.present) {
+      map['mime_type'] = Variable<String>(mimeType.value);
     }
     if (sizeBytes.present) {
       map['size_bytes'] = Variable<int>(sizeBytes.value);
@@ -553,6 +601,7 @@ class AudioTracksCompanion extends UpdateCompanion<AudioTrack> {
           ..write('displayName: $displayName, ')
           ..write('fileName: $fileName, ')
           ..write('extension: $extension, ')
+          ..write('mimeType: $mimeType, ')
           ..write('sizeBytes: $sizeBytes, ')
           ..write('localPath: $localPath, ')
           ..write('webStorageKey: $webStorageKey, ')
@@ -592,8 +641,31 @@ class $TrackCategoriesTable extends TrackCategories
     requiredDuringInsert: true,
     defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
   );
+  static const VerificationMeta _colorValueMeta = const VerificationMeta(
+    'colorValue',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, name];
+  late final GeneratedColumn<int> colorValue = GeneratedColumn<int>(
+    'color_value',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, colorValue, createdAt];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -617,6 +689,18 @@ class $TrackCategoriesTable extends TrackCategories
     } else if (isInserting) {
       context.missing(_nameMeta);
     }
+    if (data.containsKey('color_value')) {
+      context.handle(
+        _colorValueMeta,
+        colorValue.isAcceptableOrUnknown(data['color_value']!, _colorValueMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
     return context;
   }
 
@@ -634,6 +718,14 @@ class $TrackCategoriesTable extends TrackCategories
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      colorValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}color_value'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
     );
   }
 
@@ -646,17 +738,35 @@ class $TrackCategoriesTable extends TrackCategories
 class TrackCategory extends DataClass implements Insertable<TrackCategory> {
   final int id;
   final String name;
-  const TrackCategory({required this.id, required this.name});
+  final int? colorValue;
+  final DateTime createdAt;
+  const TrackCategory({
+    required this.id,
+    required this.name,
+    this.colorValue,
+    required this.createdAt,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || colorValue != null) {
+      map['color_value'] = Variable<int>(colorValue);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
     return map;
   }
 
   TrackCategoriesCompanion toCompanion(bool nullToAbsent) {
-    return TrackCategoriesCompanion(id: Value(id), name: Value(name));
+    return TrackCategoriesCompanion(
+      id: Value(id),
+      name: Value(name),
+      colorValue: colorValue == null && nullToAbsent
+          ? const Value.absent()
+          : Value(colorValue),
+      createdAt: Value(createdAt),
+    );
   }
 
   factory TrackCategory.fromJson(
@@ -667,6 +777,8 @@ class TrackCategory extends DataClass implements Insertable<TrackCategory> {
     return TrackCategory(
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      colorValue: serializer.fromJson<int?>(json['colorValue']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
   }
   @override
@@ -675,15 +787,30 @@ class TrackCategory extends DataClass implements Insertable<TrackCategory> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
+      'colorValue': serializer.toJson<int?>(colorValue),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
     };
   }
 
-  TrackCategory copyWith({int? id, String? name}) =>
-      TrackCategory(id: id ?? this.id, name: name ?? this.name);
+  TrackCategory copyWith({
+    int? id,
+    String? name,
+    Value<int?> colorValue = const Value.absent(),
+    DateTime? createdAt,
+  }) => TrackCategory(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    colorValue: colorValue.present ? colorValue.value : this.colorValue,
+    createdAt: createdAt ?? this.createdAt,
+  );
   TrackCategory copyWithCompanion(TrackCategoriesCompanion data) {
     return TrackCategory(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      colorValue: data.colorValue.present
+          ? data.colorValue.value
+          : this.colorValue,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
   }
 
@@ -691,44 +818,68 @@ class TrackCategory extends DataClass implements Insertable<TrackCategory> {
   String toString() {
     return (StringBuffer('TrackCategory(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('colorValue: $colorValue, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name);
+  int get hashCode => Object.hash(id, name, colorValue, createdAt);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is TrackCategory &&
           other.id == this.id &&
-          other.name == this.name);
+          other.name == this.name &&
+          other.colorValue == this.colorValue &&
+          other.createdAt == this.createdAt);
 }
 
 class TrackCategoriesCompanion extends UpdateCompanion<TrackCategory> {
   final Value<int> id;
   final Value<String> name;
+  final Value<int?> colorValue;
+  final Value<DateTime> createdAt;
   const TrackCategoriesCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.colorValue = const Value.absent(),
+    this.createdAt = const Value.absent(),
   });
   TrackCategoriesCompanion.insert({
     this.id = const Value.absent(),
     required String name,
+    this.colorValue = const Value.absent(),
+    this.createdAt = const Value.absent(),
   }) : name = Value(name);
   static Insertable<TrackCategory> custom({
     Expression<int>? id,
     Expression<String>? name,
+    Expression<int>? colorValue,
+    Expression<DateTime>? createdAt,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (colorValue != null) 'color_value': colorValue,
+      if (createdAt != null) 'created_at': createdAt,
     });
   }
 
-  TrackCategoriesCompanion copyWith({Value<int>? id, Value<String>? name}) {
-    return TrackCategoriesCompanion(id: id ?? this.id, name: name ?? this.name);
+  TrackCategoriesCompanion copyWith({
+    Value<int>? id,
+    Value<String>? name,
+    Value<int?>? colorValue,
+    Value<DateTime>? createdAt,
+  }) {
+    return TrackCategoriesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      colorValue: colorValue ?? this.colorValue,
+      createdAt: createdAt ?? this.createdAt,
+    );
   }
 
   @override
@@ -740,6 +891,12 @@ class TrackCategoriesCompanion extends UpdateCompanion<TrackCategory> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (colorValue.present) {
+      map['color_value'] = Variable<int>(colorValue.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
     return map;
   }
 
@@ -747,7 +904,9 @@ class TrackCategoriesCompanion extends UpdateCompanion<TrackCategory> {
   String toString() {
     return (StringBuffer('TrackCategoriesCompanion(')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('colorValue: $colorValue, ')
+          ..write('createdAt: $createdAt')
           ..write(')'))
         .toString();
   }
@@ -1233,6 +1392,1565 @@ class AudioTrackDataCompanion extends UpdateCompanion<AudioTrackDataData> {
   }
 }
 
+class $BeatmapsTable extends Beatmaps with TableInfo<$BeatmapsTable, Beatmap> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BeatmapsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _trackIdMeta = const VerificationMeta(
+    'trackId',
+  );
+  @override
+  late final GeneratedColumn<int> trackId = GeneratedColumn<int>(
+    'track_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES audio_tracks (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _difficultyNameMeta = const VerificationMeta(
+    'difficultyName',
+  );
+  @override
+  late final GeneratedColumn<String> difficultyName = GeneratedColumn<String>(
+    'difficulty_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _difficultyLevelMeta = const VerificationMeta(
+    'difficultyLevel',
+  );
+  @override
+  late final GeneratedColumn<int> difficultyLevel = GeneratedColumn<int>(
+    'difficulty_level',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _audioOffsetMsMeta = const VerificationMeta(
+    'audioOffsetMs',
+  );
+  @override
+  late final GeneratedColumn<int> audioOffsetMs = GeneratedColumn<int>(
+    'audio_offset_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _baseBpmMeta = const VerificationMeta(
+    'baseBpm',
+  );
+  @override
+  late final GeneratedColumn<double> baseBpm = GeneratedColumn<double>(
+    'base_bpm',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(120.0),
+  );
+  static const VerificationMeta _scrollSpeedMeta = const VerificationMeta(
+    'scrollSpeed',
+  );
+  @override
+  late final GeneratedColumn<double> scrollSpeed = GeneratedColumn<double>(
+    'scroll_speed',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1.0),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    trackId,
+    title,
+    difficultyName,
+    difficultyLevel,
+    audioOffsetMs,
+    baseBpm,
+    scrollSpeed,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'beatmaps';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<Beatmap> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('track_id')) {
+      context.handle(
+        _trackIdMeta,
+        trackId.isAcceptableOrUnknown(data['track_id']!, _trackIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_trackIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('difficulty_name')) {
+      context.handle(
+        _difficultyNameMeta,
+        difficultyName.isAcceptableOrUnknown(
+          data['difficulty_name']!,
+          _difficultyNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_difficultyNameMeta);
+    }
+    if (data.containsKey('difficulty_level')) {
+      context.handle(
+        _difficultyLevelMeta,
+        difficultyLevel.isAcceptableOrUnknown(
+          data['difficulty_level']!,
+          _difficultyLevelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('audio_offset_ms')) {
+      context.handle(
+        _audioOffsetMsMeta,
+        audioOffsetMs.isAcceptableOrUnknown(
+          data['audio_offset_ms']!,
+          _audioOffsetMsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('base_bpm')) {
+      context.handle(
+        _baseBpmMeta,
+        baseBpm.isAcceptableOrUnknown(data['base_bpm']!, _baseBpmMeta),
+      );
+    }
+    if (data.containsKey('scroll_speed')) {
+      context.handle(
+        _scrollSpeedMeta,
+        scrollSpeed.isAcceptableOrUnknown(
+          data['scroll_speed']!,
+          _scrollSpeedMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Beatmap map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return Beatmap(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      trackId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}track_id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      difficultyName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}difficulty_name'],
+      )!,
+      difficultyLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}difficulty_level'],
+      ),
+      audioOffsetMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}audio_offset_ms'],
+      )!,
+      baseBpm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}base_bpm'],
+      )!,
+      scrollSpeed: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}scroll_speed'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $BeatmapsTable createAlias(String alias) {
+    return $BeatmapsTable(attachedDatabase, alias);
+  }
+}
+
+class Beatmap extends DataClass implements Insertable<Beatmap> {
+  final int id;
+  final int trackId;
+  final String title;
+  final String difficultyName;
+  final int? difficultyLevel;
+  final int audioOffsetMs;
+  final double baseBpm;
+  final double scrollSpeed;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const Beatmap({
+    required this.id,
+    required this.trackId,
+    required this.title,
+    required this.difficultyName,
+    this.difficultyLevel,
+    required this.audioOffsetMs,
+    required this.baseBpm,
+    required this.scrollSpeed,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['track_id'] = Variable<int>(trackId);
+    map['title'] = Variable<String>(title);
+    map['difficulty_name'] = Variable<String>(difficultyName);
+    if (!nullToAbsent || difficultyLevel != null) {
+      map['difficulty_level'] = Variable<int>(difficultyLevel);
+    }
+    map['audio_offset_ms'] = Variable<int>(audioOffsetMs);
+    map['base_bpm'] = Variable<double>(baseBpm);
+    map['scroll_speed'] = Variable<double>(scrollSpeed);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  BeatmapsCompanion toCompanion(bool nullToAbsent) {
+    return BeatmapsCompanion(
+      id: Value(id),
+      trackId: Value(trackId),
+      title: Value(title),
+      difficultyName: Value(difficultyName),
+      difficultyLevel: difficultyLevel == null && nullToAbsent
+          ? const Value.absent()
+          : Value(difficultyLevel),
+      audioOffsetMs: Value(audioOffsetMs),
+      baseBpm: Value(baseBpm),
+      scrollSpeed: Value(scrollSpeed),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory Beatmap.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return Beatmap(
+      id: serializer.fromJson<int>(json['id']),
+      trackId: serializer.fromJson<int>(json['trackId']),
+      title: serializer.fromJson<String>(json['title']),
+      difficultyName: serializer.fromJson<String>(json['difficultyName']),
+      difficultyLevel: serializer.fromJson<int?>(json['difficultyLevel']),
+      audioOffsetMs: serializer.fromJson<int>(json['audioOffsetMs']),
+      baseBpm: serializer.fromJson<double>(json['baseBpm']),
+      scrollSpeed: serializer.fromJson<double>(json['scrollSpeed']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'trackId': serializer.toJson<int>(trackId),
+      'title': serializer.toJson<String>(title),
+      'difficultyName': serializer.toJson<String>(difficultyName),
+      'difficultyLevel': serializer.toJson<int?>(difficultyLevel),
+      'audioOffsetMs': serializer.toJson<int>(audioOffsetMs),
+      'baseBpm': serializer.toJson<double>(baseBpm),
+      'scrollSpeed': serializer.toJson<double>(scrollSpeed),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  Beatmap copyWith({
+    int? id,
+    int? trackId,
+    String? title,
+    String? difficultyName,
+    Value<int?> difficultyLevel = const Value.absent(),
+    int? audioOffsetMs,
+    double? baseBpm,
+    double? scrollSpeed,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => Beatmap(
+    id: id ?? this.id,
+    trackId: trackId ?? this.trackId,
+    title: title ?? this.title,
+    difficultyName: difficultyName ?? this.difficultyName,
+    difficultyLevel: difficultyLevel.present
+        ? difficultyLevel.value
+        : this.difficultyLevel,
+    audioOffsetMs: audioOffsetMs ?? this.audioOffsetMs,
+    baseBpm: baseBpm ?? this.baseBpm,
+    scrollSpeed: scrollSpeed ?? this.scrollSpeed,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  Beatmap copyWithCompanion(BeatmapsCompanion data) {
+    return Beatmap(
+      id: data.id.present ? data.id.value : this.id,
+      trackId: data.trackId.present ? data.trackId.value : this.trackId,
+      title: data.title.present ? data.title.value : this.title,
+      difficultyName: data.difficultyName.present
+          ? data.difficultyName.value
+          : this.difficultyName,
+      difficultyLevel: data.difficultyLevel.present
+          ? data.difficultyLevel.value
+          : this.difficultyLevel,
+      audioOffsetMs: data.audioOffsetMs.present
+          ? data.audioOffsetMs.value
+          : this.audioOffsetMs,
+      baseBpm: data.baseBpm.present ? data.baseBpm.value : this.baseBpm,
+      scrollSpeed: data.scrollSpeed.present
+          ? data.scrollSpeed.value
+          : this.scrollSpeed,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('Beatmap(')
+          ..write('id: $id, ')
+          ..write('trackId: $trackId, ')
+          ..write('title: $title, ')
+          ..write('difficultyName: $difficultyName, ')
+          ..write('difficultyLevel: $difficultyLevel, ')
+          ..write('audioOffsetMs: $audioOffsetMs, ')
+          ..write('baseBpm: $baseBpm, ')
+          ..write('scrollSpeed: $scrollSpeed, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    trackId,
+    title,
+    difficultyName,
+    difficultyLevel,
+    audioOffsetMs,
+    baseBpm,
+    scrollSpeed,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is Beatmap &&
+          other.id == this.id &&
+          other.trackId == this.trackId &&
+          other.title == this.title &&
+          other.difficultyName == this.difficultyName &&
+          other.difficultyLevel == this.difficultyLevel &&
+          other.audioOffsetMs == this.audioOffsetMs &&
+          other.baseBpm == this.baseBpm &&
+          other.scrollSpeed == this.scrollSpeed &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class BeatmapsCompanion extends UpdateCompanion<Beatmap> {
+  final Value<int> id;
+  final Value<int> trackId;
+  final Value<String> title;
+  final Value<String> difficultyName;
+  final Value<int?> difficultyLevel;
+  final Value<int> audioOffsetMs;
+  final Value<double> baseBpm;
+  final Value<double> scrollSpeed;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  const BeatmapsCompanion({
+    this.id = const Value.absent(),
+    this.trackId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.difficultyName = const Value.absent(),
+    this.difficultyLevel = const Value.absent(),
+    this.audioOffsetMs = const Value.absent(),
+    this.baseBpm = const Value.absent(),
+    this.scrollSpeed = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  BeatmapsCompanion.insert({
+    this.id = const Value.absent(),
+    required int trackId,
+    required String title,
+    required String difficultyName,
+    this.difficultyLevel = const Value.absent(),
+    this.audioOffsetMs = const Value.absent(),
+    this.baseBpm = const Value.absent(),
+    this.scrollSpeed = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : trackId = Value(trackId),
+       title = Value(title),
+       difficultyName = Value(difficultyName);
+  static Insertable<Beatmap> custom({
+    Expression<int>? id,
+    Expression<int>? trackId,
+    Expression<String>? title,
+    Expression<String>? difficultyName,
+    Expression<int>? difficultyLevel,
+    Expression<int>? audioOffsetMs,
+    Expression<double>? baseBpm,
+    Expression<double>? scrollSpeed,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (trackId != null) 'track_id': trackId,
+      if (title != null) 'title': title,
+      if (difficultyName != null) 'difficulty_name': difficultyName,
+      if (difficultyLevel != null) 'difficulty_level': difficultyLevel,
+      if (audioOffsetMs != null) 'audio_offset_ms': audioOffsetMs,
+      if (baseBpm != null) 'base_bpm': baseBpm,
+      if (scrollSpeed != null) 'scroll_speed': scrollSpeed,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  BeatmapsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? trackId,
+    Value<String>? title,
+    Value<String>? difficultyName,
+    Value<int?>? difficultyLevel,
+    Value<int>? audioOffsetMs,
+    Value<double>? baseBpm,
+    Value<double>? scrollSpeed,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+  }) {
+    return BeatmapsCompanion(
+      id: id ?? this.id,
+      trackId: trackId ?? this.trackId,
+      title: title ?? this.title,
+      difficultyName: difficultyName ?? this.difficultyName,
+      difficultyLevel: difficultyLevel ?? this.difficultyLevel,
+      audioOffsetMs: audioOffsetMs ?? this.audioOffsetMs,
+      baseBpm: baseBpm ?? this.baseBpm,
+      scrollSpeed: scrollSpeed ?? this.scrollSpeed,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (trackId.present) {
+      map['track_id'] = Variable<int>(trackId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (difficultyName.present) {
+      map['difficulty_name'] = Variable<String>(difficultyName.value);
+    }
+    if (difficultyLevel.present) {
+      map['difficulty_level'] = Variable<int>(difficultyLevel.value);
+    }
+    if (audioOffsetMs.present) {
+      map['audio_offset_ms'] = Variable<int>(audioOffsetMs.value);
+    }
+    if (baseBpm.present) {
+      map['base_bpm'] = Variable<double>(baseBpm.value);
+    }
+    if (scrollSpeed.present) {
+      map['scroll_speed'] = Variable<double>(scrollSpeed.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BeatmapsCompanion(')
+          ..write('id: $id, ')
+          ..write('trackId: $trackId, ')
+          ..write('title: $title, ')
+          ..write('difficultyName: $difficultyName, ')
+          ..write('difficultyLevel: $difficultyLevel, ')
+          ..write('audioOffsetMs: $audioOffsetMs, ')
+          ..write('baseBpm: $baseBpm, ')
+          ..write('scrollSpeed: $scrollSpeed, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TimingPointsTable extends TimingPoints
+    with TableInfo<$TimingPointsTable, TimingPoint> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TimingPointsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _beatmapIdMeta = const VerificationMeta(
+    'beatmapId',
+  );
+  @override
+  late final GeneratedColumn<int> beatmapId = GeneratedColumn<int>(
+    'beatmap_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES beatmaps (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _timeMsMeta = const VerificationMeta('timeMs');
+  @override
+  late final GeneratedColumn<int> timeMs = GeneratedColumn<int>(
+    'time_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bpmMeta = const VerificationMeta('bpm');
+  @override
+  late final GeneratedColumn<double> bpm = GeneratedColumn<double>(
+    'bpm',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _meterMeta = const VerificationMeta('meter');
+  @override
+  late final GeneratedColumn<int> meter = GeneratedColumn<int>(
+    'meter',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(4),
+  );
+  static const VerificationMeta _inheritedMeta = const VerificationMeta(
+    'inherited',
+  );
+  @override
+  late final GeneratedColumn<bool> inherited = GeneratedColumn<bool>(
+    'inherited',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("inherited" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    beatmapId,
+    timeMs,
+    bpm,
+    meter,
+    inherited,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'timing_points';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TimingPoint> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('beatmap_id')) {
+      context.handle(
+        _beatmapIdMeta,
+        beatmapId.isAcceptableOrUnknown(data['beatmap_id']!, _beatmapIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_beatmapIdMeta);
+    }
+    if (data.containsKey('time_ms')) {
+      context.handle(
+        _timeMsMeta,
+        timeMs.isAcceptableOrUnknown(data['time_ms']!, _timeMsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_timeMsMeta);
+    }
+    if (data.containsKey('bpm')) {
+      context.handle(
+        _bpmMeta,
+        bpm.isAcceptableOrUnknown(data['bpm']!, _bpmMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bpmMeta);
+    }
+    if (data.containsKey('meter')) {
+      context.handle(
+        _meterMeta,
+        meter.isAcceptableOrUnknown(data['meter']!, _meterMeta),
+      );
+    }
+    if (data.containsKey('inherited')) {
+      context.handle(
+        _inheritedMeta,
+        inherited.isAcceptableOrUnknown(data['inherited']!, _inheritedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  TimingPoint map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TimingPoint(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      beatmapId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}beatmap_id'],
+      )!,
+      timeMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}time_ms'],
+      )!,
+      bpm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}bpm'],
+      )!,
+      meter: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}meter'],
+      )!,
+      inherited: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}inherited'],
+      )!,
+    );
+  }
+
+  @override
+  $TimingPointsTable createAlias(String alias) {
+    return $TimingPointsTable(attachedDatabase, alias);
+  }
+}
+
+class TimingPoint extends DataClass implements Insertable<TimingPoint> {
+  final int id;
+  final int beatmapId;
+  final int timeMs;
+  final double bpm;
+  final int meter;
+  final bool inherited;
+  const TimingPoint({
+    required this.id,
+    required this.beatmapId,
+    required this.timeMs,
+    required this.bpm,
+    required this.meter,
+    required this.inherited,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['beatmap_id'] = Variable<int>(beatmapId);
+    map['time_ms'] = Variable<int>(timeMs);
+    map['bpm'] = Variable<double>(bpm);
+    map['meter'] = Variable<int>(meter);
+    map['inherited'] = Variable<bool>(inherited);
+    return map;
+  }
+
+  TimingPointsCompanion toCompanion(bool nullToAbsent) {
+    return TimingPointsCompanion(
+      id: Value(id),
+      beatmapId: Value(beatmapId),
+      timeMs: Value(timeMs),
+      bpm: Value(bpm),
+      meter: Value(meter),
+      inherited: Value(inherited),
+    );
+  }
+
+  factory TimingPoint.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TimingPoint(
+      id: serializer.fromJson<int>(json['id']),
+      beatmapId: serializer.fromJson<int>(json['beatmapId']),
+      timeMs: serializer.fromJson<int>(json['timeMs']),
+      bpm: serializer.fromJson<double>(json['bpm']),
+      meter: serializer.fromJson<int>(json['meter']),
+      inherited: serializer.fromJson<bool>(json['inherited']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'beatmapId': serializer.toJson<int>(beatmapId),
+      'timeMs': serializer.toJson<int>(timeMs),
+      'bpm': serializer.toJson<double>(bpm),
+      'meter': serializer.toJson<int>(meter),
+      'inherited': serializer.toJson<bool>(inherited),
+    };
+  }
+
+  TimingPoint copyWith({
+    int? id,
+    int? beatmapId,
+    int? timeMs,
+    double? bpm,
+    int? meter,
+    bool? inherited,
+  }) => TimingPoint(
+    id: id ?? this.id,
+    beatmapId: beatmapId ?? this.beatmapId,
+    timeMs: timeMs ?? this.timeMs,
+    bpm: bpm ?? this.bpm,
+    meter: meter ?? this.meter,
+    inherited: inherited ?? this.inherited,
+  );
+  TimingPoint copyWithCompanion(TimingPointsCompanion data) {
+    return TimingPoint(
+      id: data.id.present ? data.id.value : this.id,
+      beatmapId: data.beatmapId.present ? data.beatmapId.value : this.beatmapId,
+      timeMs: data.timeMs.present ? data.timeMs.value : this.timeMs,
+      bpm: data.bpm.present ? data.bpm.value : this.bpm,
+      meter: data.meter.present ? data.meter.value : this.meter,
+      inherited: data.inherited.present ? data.inherited.value : this.inherited,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TimingPoint(')
+          ..write('id: $id, ')
+          ..write('beatmapId: $beatmapId, ')
+          ..write('timeMs: $timeMs, ')
+          ..write('bpm: $bpm, ')
+          ..write('meter: $meter, ')
+          ..write('inherited: $inherited')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, beatmapId, timeMs, bpm, meter, inherited);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TimingPoint &&
+          other.id == this.id &&
+          other.beatmapId == this.beatmapId &&
+          other.timeMs == this.timeMs &&
+          other.bpm == this.bpm &&
+          other.meter == this.meter &&
+          other.inherited == this.inherited);
+}
+
+class TimingPointsCompanion extends UpdateCompanion<TimingPoint> {
+  final Value<int> id;
+  final Value<int> beatmapId;
+  final Value<int> timeMs;
+  final Value<double> bpm;
+  final Value<int> meter;
+  final Value<bool> inherited;
+  const TimingPointsCompanion({
+    this.id = const Value.absent(),
+    this.beatmapId = const Value.absent(),
+    this.timeMs = const Value.absent(),
+    this.bpm = const Value.absent(),
+    this.meter = const Value.absent(),
+    this.inherited = const Value.absent(),
+  });
+  TimingPointsCompanion.insert({
+    this.id = const Value.absent(),
+    required int beatmapId,
+    required int timeMs,
+    required double bpm,
+    this.meter = const Value.absent(),
+    this.inherited = const Value.absent(),
+  }) : beatmapId = Value(beatmapId),
+       timeMs = Value(timeMs),
+       bpm = Value(bpm);
+  static Insertable<TimingPoint> custom({
+    Expression<int>? id,
+    Expression<int>? beatmapId,
+    Expression<int>? timeMs,
+    Expression<double>? bpm,
+    Expression<int>? meter,
+    Expression<bool>? inherited,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (beatmapId != null) 'beatmap_id': beatmapId,
+      if (timeMs != null) 'time_ms': timeMs,
+      if (bpm != null) 'bpm': bpm,
+      if (meter != null) 'meter': meter,
+      if (inherited != null) 'inherited': inherited,
+    });
+  }
+
+  TimingPointsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? beatmapId,
+    Value<int>? timeMs,
+    Value<double>? bpm,
+    Value<int>? meter,
+    Value<bool>? inherited,
+  }) {
+    return TimingPointsCompanion(
+      id: id ?? this.id,
+      beatmapId: beatmapId ?? this.beatmapId,
+      timeMs: timeMs ?? this.timeMs,
+      bpm: bpm ?? this.bpm,
+      meter: meter ?? this.meter,
+      inherited: inherited ?? this.inherited,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (beatmapId.present) {
+      map['beatmap_id'] = Variable<int>(beatmapId.value);
+    }
+    if (timeMs.present) {
+      map['time_ms'] = Variable<int>(timeMs.value);
+    }
+    if (bpm.present) {
+      map['bpm'] = Variable<double>(bpm.value);
+    }
+    if (meter.present) {
+      map['meter'] = Variable<int>(meter.value);
+    }
+    if (inherited.present) {
+      map['inherited'] = Variable<bool>(inherited.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TimingPointsCompanion(')
+          ..write('id: $id, ')
+          ..write('beatmapId: $beatmapId, ')
+          ..write('timeMs: $timeMs, ')
+          ..write('bpm: $bpm, ')
+          ..write('meter: $meter, ')
+          ..write('inherited: $inherited')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $BeatmapNotesTable extends BeatmapNotes
+    with TableInfo<$BeatmapNotesTable, BeatmapNote> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BeatmapNotesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _beatmapIdMeta = const VerificationMeta(
+    'beatmapId',
+  );
+  @override
+  late final GeneratedColumn<int> beatmapId = GeneratedColumn<int>(
+    'beatmap_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES beatmaps (id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _timeMsMeta = const VerificationMeta('timeMs');
+  @override
+  late final GeneratedColumn<int> timeMs = GeneratedColumn<int>(
+    'time_ms',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _laneMeta = const VerificationMeta('lane');
+  @override
+  late final GeneratedColumn<int> lane = GeneratedColumn<int>(
+    'lane',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _durationMsMeta = const VerificationMeta(
+    'durationMs',
+  );
+  @override
+  late final GeneratedColumn<int> durationMs = GeneratedColumn<int>(
+    'duration_ms',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _directionMeta = const VerificationMeta(
+    'direction',
+  );
+  @override
+  late final GeneratedColumn<String> direction = GeneratedColumn<String>(
+    'direction',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _positionXMeta = const VerificationMeta(
+    'positionX',
+  );
+  @override
+  late final GeneratedColumn<double> positionX = GeneratedColumn<double>(
+    'position_x',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _positionYMeta = const VerificationMeta(
+    'positionY',
+  );
+  @override
+  late final GeneratedColumn<double> positionY = GeneratedColumn<double>(
+    'position_y',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    beatmapId,
+    timeMs,
+    lane,
+    type,
+    durationMs,
+    direction,
+    positionX,
+    positionY,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'beatmap_notes';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BeatmapNote> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('beatmap_id')) {
+      context.handle(
+        _beatmapIdMeta,
+        beatmapId.isAcceptableOrUnknown(data['beatmap_id']!, _beatmapIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_beatmapIdMeta);
+    }
+    if (data.containsKey('time_ms')) {
+      context.handle(
+        _timeMsMeta,
+        timeMs.isAcceptableOrUnknown(data['time_ms']!, _timeMsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_timeMsMeta);
+    }
+    if (data.containsKey('lane')) {
+      context.handle(
+        _laneMeta,
+        lane.isAcceptableOrUnknown(data['lane']!, _laneMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_laneMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('duration_ms')) {
+      context.handle(
+        _durationMsMeta,
+        durationMs.isAcceptableOrUnknown(data['duration_ms']!, _durationMsMeta),
+      );
+    }
+    if (data.containsKey('direction')) {
+      context.handle(
+        _directionMeta,
+        direction.isAcceptableOrUnknown(data['direction']!, _directionMeta),
+      );
+    }
+    if (data.containsKey('position_x')) {
+      context.handle(
+        _positionXMeta,
+        positionX.isAcceptableOrUnknown(data['position_x']!, _positionXMeta),
+      );
+    }
+    if (data.containsKey('position_y')) {
+      context.handle(
+        _positionYMeta,
+        positionY.isAcceptableOrUnknown(data['position_y']!, _positionYMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BeatmapNote map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BeatmapNote(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      beatmapId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}beatmap_id'],
+      )!,
+      timeMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}time_ms'],
+      )!,
+      lane: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}lane'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      durationMs: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}duration_ms'],
+      ),
+      direction: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}direction'],
+      ),
+      positionX: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}position_x'],
+      ),
+      positionY: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}position_y'],
+      ),
+    );
+  }
+
+  @override
+  $BeatmapNotesTable createAlias(String alias) {
+    return $BeatmapNotesTable(attachedDatabase, alias);
+  }
+}
+
+class BeatmapNote extends DataClass implements Insertable<BeatmapNote> {
+  final int id;
+  final int beatmapId;
+  final int timeMs;
+  final int lane;
+  final String type;
+  final int? durationMs;
+  final String? direction;
+  final double? positionX;
+  final double? positionY;
+  const BeatmapNote({
+    required this.id,
+    required this.beatmapId,
+    required this.timeMs,
+    required this.lane,
+    required this.type,
+    this.durationMs,
+    this.direction,
+    this.positionX,
+    this.positionY,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['beatmap_id'] = Variable<int>(beatmapId);
+    map['time_ms'] = Variable<int>(timeMs);
+    map['lane'] = Variable<int>(lane);
+    map['type'] = Variable<String>(type);
+    if (!nullToAbsent || durationMs != null) {
+      map['duration_ms'] = Variable<int>(durationMs);
+    }
+    if (!nullToAbsent || direction != null) {
+      map['direction'] = Variable<String>(direction);
+    }
+    if (!nullToAbsent || positionX != null) {
+      map['position_x'] = Variable<double>(positionX);
+    }
+    if (!nullToAbsent || positionY != null) {
+      map['position_y'] = Variable<double>(positionY);
+    }
+    return map;
+  }
+
+  BeatmapNotesCompanion toCompanion(bool nullToAbsent) {
+    return BeatmapNotesCompanion(
+      id: Value(id),
+      beatmapId: Value(beatmapId),
+      timeMs: Value(timeMs),
+      lane: Value(lane),
+      type: Value(type),
+      durationMs: durationMs == null && nullToAbsent
+          ? const Value.absent()
+          : Value(durationMs),
+      direction: direction == null && nullToAbsent
+          ? const Value.absent()
+          : Value(direction),
+      positionX: positionX == null && nullToAbsent
+          ? const Value.absent()
+          : Value(positionX),
+      positionY: positionY == null && nullToAbsent
+          ? const Value.absent()
+          : Value(positionY),
+    );
+  }
+
+  factory BeatmapNote.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BeatmapNote(
+      id: serializer.fromJson<int>(json['id']),
+      beatmapId: serializer.fromJson<int>(json['beatmapId']),
+      timeMs: serializer.fromJson<int>(json['timeMs']),
+      lane: serializer.fromJson<int>(json['lane']),
+      type: serializer.fromJson<String>(json['type']),
+      durationMs: serializer.fromJson<int?>(json['durationMs']),
+      direction: serializer.fromJson<String?>(json['direction']),
+      positionX: serializer.fromJson<double?>(json['positionX']),
+      positionY: serializer.fromJson<double?>(json['positionY']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'beatmapId': serializer.toJson<int>(beatmapId),
+      'timeMs': serializer.toJson<int>(timeMs),
+      'lane': serializer.toJson<int>(lane),
+      'type': serializer.toJson<String>(type),
+      'durationMs': serializer.toJson<int?>(durationMs),
+      'direction': serializer.toJson<String?>(direction),
+      'positionX': serializer.toJson<double?>(positionX),
+      'positionY': serializer.toJson<double?>(positionY),
+    };
+  }
+
+  BeatmapNote copyWith({
+    int? id,
+    int? beatmapId,
+    int? timeMs,
+    int? lane,
+    String? type,
+    Value<int?> durationMs = const Value.absent(),
+    Value<String?> direction = const Value.absent(),
+    Value<double?> positionX = const Value.absent(),
+    Value<double?> positionY = const Value.absent(),
+  }) => BeatmapNote(
+    id: id ?? this.id,
+    beatmapId: beatmapId ?? this.beatmapId,
+    timeMs: timeMs ?? this.timeMs,
+    lane: lane ?? this.lane,
+    type: type ?? this.type,
+    durationMs: durationMs.present ? durationMs.value : this.durationMs,
+    direction: direction.present ? direction.value : this.direction,
+    positionX: positionX.present ? positionX.value : this.positionX,
+    positionY: positionY.present ? positionY.value : this.positionY,
+  );
+  BeatmapNote copyWithCompanion(BeatmapNotesCompanion data) {
+    return BeatmapNote(
+      id: data.id.present ? data.id.value : this.id,
+      beatmapId: data.beatmapId.present ? data.beatmapId.value : this.beatmapId,
+      timeMs: data.timeMs.present ? data.timeMs.value : this.timeMs,
+      lane: data.lane.present ? data.lane.value : this.lane,
+      type: data.type.present ? data.type.value : this.type,
+      durationMs: data.durationMs.present
+          ? data.durationMs.value
+          : this.durationMs,
+      direction: data.direction.present ? data.direction.value : this.direction,
+      positionX: data.positionX.present ? data.positionX.value : this.positionX,
+      positionY: data.positionY.present ? data.positionY.value : this.positionY,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BeatmapNote(')
+          ..write('id: $id, ')
+          ..write('beatmapId: $beatmapId, ')
+          ..write('timeMs: $timeMs, ')
+          ..write('lane: $lane, ')
+          ..write('type: $type, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('direction: $direction, ')
+          ..write('positionX: $positionX, ')
+          ..write('positionY: $positionY')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    beatmapId,
+    timeMs,
+    lane,
+    type,
+    durationMs,
+    direction,
+    positionX,
+    positionY,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BeatmapNote &&
+          other.id == this.id &&
+          other.beatmapId == this.beatmapId &&
+          other.timeMs == this.timeMs &&
+          other.lane == this.lane &&
+          other.type == this.type &&
+          other.durationMs == this.durationMs &&
+          other.direction == this.direction &&
+          other.positionX == this.positionX &&
+          other.positionY == this.positionY);
+}
+
+class BeatmapNotesCompanion extends UpdateCompanion<BeatmapNote> {
+  final Value<int> id;
+  final Value<int> beatmapId;
+  final Value<int> timeMs;
+  final Value<int> lane;
+  final Value<String> type;
+  final Value<int?> durationMs;
+  final Value<String?> direction;
+  final Value<double?> positionX;
+  final Value<double?> positionY;
+  const BeatmapNotesCompanion({
+    this.id = const Value.absent(),
+    this.beatmapId = const Value.absent(),
+    this.timeMs = const Value.absent(),
+    this.lane = const Value.absent(),
+    this.type = const Value.absent(),
+    this.durationMs = const Value.absent(),
+    this.direction = const Value.absent(),
+    this.positionX = const Value.absent(),
+    this.positionY = const Value.absent(),
+  });
+  BeatmapNotesCompanion.insert({
+    this.id = const Value.absent(),
+    required int beatmapId,
+    required int timeMs,
+    required int lane,
+    required String type,
+    this.durationMs = const Value.absent(),
+    this.direction = const Value.absent(),
+    this.positionX = const Value.absent(),
+    this.positionY = const Value.absent(),
+  }) : beatmapId = Value(beatmapId),
+       timeMs = Value(timeMs),
+       lane = Value(lane),
+       type = Value(type);
+  static Insertable<BeatmapNote> custom({
+    Expression<int>? id,
+    Expression<int>? beatmapId,
+    Expression<int>? timeMs,
+    Expression<int>? lane,
+    Expression<String>? type,
+    Expression<int>? durationMs,
+    Expression<String>? direction,
+    Expression<double>? positionX,
+    Expression<double>? positionY,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (beatmapId != null) 'beatmap_id': beatmapId,
+      if (timeMs != null) 'time_ms': timeMs,
+      if (lane != null) 'lane': lane,
+      if (type != null) 'type': type,
+      if (durationMs != null) 'duration_ms': durationMs,
+      if (direction != null) 'direction': direction,
+      if (positionX != null) 'position_x': positionX,
+      if (positionY != null) 'position_y': positionY,
+    });
+  }
+
+  BeatmapNotesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? beatmapId,
+    Value<int>? timeMs,
+    Value<int>? lane,
+    Value<String>? type,
+    Value<int?>? durationMs,
+    Value<String?>? direction,
+    Value<double?>? positionX,
+    Value<double?>? positionY,
+  }) {
+    return BeatmapNotesCompanion(
+      id: id ?? this.id,
+      beatmapId: beatmapId ?? this.beatmapId,
+      timeMs: timeMs ?? this.timeMs,
+      lane: lane ?? this.lane,
+      type: type ?? this.type,
+      durationMs: durationMs ?? this.durationMs,
+      direction: direction ?? this.direction,
+      positionX: positionX ?? this.positionX,
+      positionY: positionY ?? this.positionY,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (beatmapId.present) {
+      map['beatmap_id'] = Variable<int>(beatmapId.value);
+    }
+    if (timeMs.present) {
+      map['time_ms'] = Variable<int>(timeMs.value);
+    }
+    if (lane.present) {
+      map['lane'] = Variable<int>(lane.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (durationMs.present) {
+      map['duration_ms'] = Variable<int>(durationMs.value);
+    }
+    if (direction.present) {
+      map['direction'] = Variable<String>(direction.value);
+    }
+    if (positionX.present) {
+      map['position_x'] = Variable<double>(positionX.value);
+    }
+    if (positionY.present) {
+      map['position_y'] = Variable<double>(positionY.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BeatmapNotesCompanion(')
+          ..write('id: $id, ')
+          ..write('beatmapId: $beatmapId, ')
+          ..write('timeMs: $timeMs, ')
+          ..write('lane: $lane, ')
+          ..write('type: $type, ')
+          ..write('durationMs: $durationMs, ')
+          ..write('direction: $direction, ')
+          ..write('positionX: $positionX, ')
+          ..write('positionY: $positionY')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -1243,6 +2961,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $TrackCategoryLinksTable trackCategoryLinks =
       $TrackCategoryLinksTable(this);
   late final $AudioTrackDataTable audioTrackData = $AudioTrackDataTable(this);
+  late final $BeatmapsTable beatmaps = $BeatmapsTable(this);
+  late final $TimingPointsTable timingPoints = $TimingPointsTable(this);
+  late final $BeatmapNotesTable beatmapNotes = $BeatmapNotesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1252,6 +2973,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     trackCategories,
     trackCategoryLinks,
     audioTrackData,
+    beatmaps,
+    timingPoints,
+    beatmapNotes,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -1276,6 +3000,27 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       ),
       result: [TableUpdate('audio_track_data', kind: UpdateKind.delete)],
     ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'audio_tracks',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('beatmaps', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'beatmaps',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('timing_points', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'beatmaps',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('beatmap_notes', kind: UpdateKind.delete)],
+    ),
   ]);
 }
 
@@ -1285,6 +3030,7 @@ typedef $$AudioTracksTableCreateCompanionBuilder =
       required String displayName,
       required String fileName,
       required String extension,
+      Value<String?> mimeType,
       required int sizeBytes,
       Value<String?> localPath,
       Value<String?> webStorageKey,
@@ -1297,6 +3043,7 @@ typedef $$AudioTracksTableUpdateCompanionBuilder =
       Value<String> displayName,
       Value<String> fileName,
       Value<String> extension,
+      Value<String?> mimeType,
       Value<int> sizeBytes,
       Value<String?> localPath,
       Value<String?> webStorageKey,
@@ -1352,6 +3099,25 @@ final class $$AudioTracksTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$BeatmapsTable, List<Beatmap>> _beatmapsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.beatmaps,
+    aliasName: $_aliasNameGenerator(db.audioTracks.id, db.beatmaps.trackId),
+  );
+
+  $$BeatmapsTableProcessedTableManager get beatmapsRefs {
+    final manager = $$BeatmapsTableTableManager(
+      $_db,
+      $_db.beatmaps,
+    ).filter((f) => f.trackId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_beatmapsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$AudioTracksTableFilterComposer
@@ -1380,6 +3146,11 @@ class $$AudioTracksTableFilterComposer
 
   ColumnFilters<String> get extension => $composableBuilder(
     column: $table.extension,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -1457,6 +3228,31 @@ class $$AudioTracksTableFilterComposer
     );
     return f(composer);
   }
+
+  Expression<bool> beatmapsRefs(
+    Expression<bool> Function($$BeatmapsTableFilterComposer f) f,
+  ) {
+    final $$BeatmapsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.beatmaps,
+      getReferencedColumn: (t) => t.trackId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BeatmapsTableFilterComposer(
+            $db: $db,
+            $table: $db.beatmaps,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$AudioTracksTableOrderingComposer
@@ -1485,6 +3281,11 @@ class $$AudioTracksTableOrderingComposer
 
   ColumnOrderings<String> get extension => $composableBuilder(
     column: $table.extension,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -1536,6 +3337,9 @@ class $$AudioTracksTableAnnotationComposer
 
   GeneratedColumn<String> get extension =>
       $composableBuilder(column: $table.extension, builder: (column) => column);
+
+  GeneratedColumn<String> get mimeType =>
+      $composableBuilder(column: $table.mimeType, builder: (column) => column);
 
   GeneratedColumn<int> get sizeBytes =>
       $composableBuilder(column: $table.sizeBytes, builder: (column) => column);
@@ -1604,6 +3408,31 @@ class $$AudioTracksTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> beatmapsRefs<T extends Object>(
+    Expression<T> Function($$BeatmapsTableAnnotationComposer a) f,
+  ) {
+    final $$BeatmapsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.beatmaps,
+      getReferencedColumn: (t) => t.trackId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BeatmapsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.beatmaps,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$AudioTracksTableTableManager
@@ -1622,6 +3451,7 @@ class $$AudioTracksTableTableManager
           PrefetchHooks Function({
             bool trackCategoryLinksRefs,
             bool audioTrackDataRefs,
+            bool beatmapsRefs,
           })
         > {
   $$AudioTracksTableTableManager(_$AppDatabase db, $AudioTracksTable table)
@@ -1641,6 +3471,7 @@ class $$AudioTracksTableTableManager
                 Value<String> displayName = const Value.absent(),
                 Value<String> fileName = const Value.absent(),
                 Value<String> extension = const Value.absent(),
+                Value<String?> mimeType = const Value.absent(),
                 Value<int> sizeBytes = const Value.absent(),
                 Value<String?> localPath = const Value.absent(),
                 Value<String?> webStorageKey = const Value.absent(),
@@ -1651,6 +3482,7 @@ class $$AudioTracksTableTableManager
                 displayName: displayName,
                 fileName: fileName,
                 extension: extension,
+                mimeType: mimeType,
                 sizeBytes: sizeBytes,
                 localPath: localPath,
                 webStorageKey: webStorageKey,
@@ -1663,6 +3495,7 @@ class $$AudioTracksTableTableManager
                 required String displayName,
                 required String fileName,
                 required String extension,
+                Value<String?> mimeType = const Value.absent(),
                 required int sizeBytes,
                 Value<String?> localPath = const Value.absent(),
                 Value<String?> webStorageKey = const Value.absent(),
@@ -1673,6 +3506,7 @@ class $$AudioTracksTableTableManager
                 displayName: displayName,
                 fileName: fileName,
                 extension: extension,
+                mimeType: mimeType,
                 sizeBytes: sizeBytes,
                 localPath: localPath,
                 webStorageKey: webStorageKey,
@@ -1688,12 +3522,17 @@ class $$AudioTracksTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({trackCategoryLinksRefs = false, audioTrackDataRefs = false}) {
+              ({
+                trackCategoryLinksRefs = false,
+                audioTrackDataRefs = false,
+                beatmapsRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (trackCategoryLinksRefs) db.trackCategoryLinks,
                     if (audioTrackDataRefs) db.audioTrackData,
+                    if (beatmapsRefs) db.beatmaps,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -1740,6 +3579,27 @@ class $$AudioTracksTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (beatmapsRefs)
+                        await $_getPrefetchedData<
+                          AudioTrack,
+                          $AudioTracksTable,
+                          Beatmap
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AudioTracksTableReferences
+                              ._beatmapsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AudioTracksTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).beatmapsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.trackId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -1763,12 +3623,23 @@ typedef $$AudioTracksTableProcessedTableManager =
       PrefetchHooks Function({
         bool trackCategoryLinksRefs,
         bool audioTrackDataRefs,
+        bool beatmapsRefs,
       })
     >;
 typedef $$TrackCategoriesTableCreateCompanionBuilder =
-    TrackCategoriesCompanion Function({Value<int> id, required String name});
+    TrackCategoriesCompanion Function({
+      Value<int> id,
+      required String name,
+      Value<int?> colorValue,
+      Value<DateTime> createdAt,
+    });
 typedef $$TrackCategoriesTableUpdateCompanionBuilder =
-    TrackCategoriesCompanion Function({Value<int> id, Value<String> name});
+    TrackCategoriesCompanion Function({
+      Value<int> id,
+      Value<String> name,
+      Value<int?> colorValue,
+      Value<DateTime> createdAt,
+    });
 
 final class $$TrackCategoriesTableReferences
     extends
@@ -1823,6 +3694,16 @@ class $$TrackCategoriesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<int> get colorValue => $composableBuilder(
+    column: $table.colorValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   Expression<bool> trackCategoryLinksRefs(
     Expression<bool> Function($$TrackCategoryLinksTableFilterComposer f) f,
   ) {
@@ -1867,6 +3748,16 @@ class $$TrackCategoriesTableOrderingComposer
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get colorValue => $composableBuilder(
+    column: $table.colorValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$TrackCategoriesTableAnnotationComposer
@@ -1883,6 +3774,14 @@ class $$TrackCategoriesTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get colorValue => $composableBuilder(
+    column: $table.colorValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
   Expression<T> trackCategoryLinksRefs<T extends Object>(
     Expression<T> Function($$TrackCategoryLinksTableAnnotationComposer a) f,
@@ -1943,10 +3842,26 @@ class $$TrackCategoriesTableTableManager
               ({
                 Value<int> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
-              }) => TrackCategoriesCompanion(id: id, name: name),
+                Value<int?> colorValue = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => TrackCategoriesCompanion(
+                id: id,
+                name: name,
+                colorValue: colorValue,
+                createdAt: createdAt,
+              ),
           createCompanionCallback:
-              ({Value<int> id = const Value.absent(), required String name}) =>
-                  TrackCategoriesCompanion.insert(id: id, name: name),
+              ({
+                Value<int> id = const Value.absent(),
+                required String name,
+                Value<int?> colorValue = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+              }) => TrackCategoriesCompanion.insert(
+                id: id,
+                name: name,
+                colorValue: colorValue,
+                createdAt: createdAt,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
@@ -2663,6 +4578,1340 @@ typedef $$AudioTrackDataTableProcessedTableManager =
       AudioTrackDataData,
       PrefetchHooks Function({bool trackId})
     >;
+typedef $$BeatmapsTableCreateCompanionBuilder =
+    BeatmapsCompanion Function({
+      Value<int> id,
+      required int trackId,
+      required String title,
+      required String difficultyName,
+      Value<int?> difficultyLevel,
+      Value<int> audioOffsetMs,
+      Value<double> baseBpm,
+      Value<double> scrollSpeed,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+typedef $$BeatmapsTableUpdateCompanionBuilder =
+    BeatmapsCompanion Function({
+      Value<int> id,
+      Value<int> trackId,
+      Value<String> title,
+      Value<String> difficultyName,
+      Value<int?> difficultyLevel,
+      Value<int> audioOffsetMs,
+      Value<double> baseBpm,
+      Value<double> scrollSpeed,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+    });
+
+final class $$BeatmapsTableReferences
+    extends BaseReferences<_$AppDatabase, $BeatmapsTable, Beatmap> {
+  $$BeatmapsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $AudioTracksTable _trackIdTable(_$AppDatabase db) =>
+      db.audioTracks.createAlias(
+        $_aliasNameGenerator(db.beatmaps.trackId, db.audioTracks.id),
+      );
+
+  $$AudioTracksTableProcessedTableManager get trackId {
+    final $_column = $_itemColumn<int>('track_id')!;
+
+    final manager = $$AudioTracksTableTableManager(
+      $_db,
+      $_db.audioTracks,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_trackIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$TimingPointsTable, List<TimingPoint>>
+  _timingPointsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.timingPoints,
+    aliasName: $_aliasNameGenerator(db.beatmaps.id, db.timingPoints.beatmapId),
+  );
+
+  $$TimingPointsTableProcessedTableManager get timingPointsRefs {
+    final manager = $$TimingPointsTableTableManager(
+      $_db,
+      $_db.timingPoints,
+    ).filter((f) => f.beatmapId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_timingPointsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$BeatmapNotesTable, List<BeatmapNote>>
+  _beatmapNotesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.beatmapNotes,
+    aliasName: $_aliasNameGenerator(db.beatmaps.id, db.beatmapNotes.beatmapId),
+  );
+
+  $$BeatmapNotesTableProcessedTableManager get beatmapNotesRefs {
+    final manager = $$BeatmapNotesTableTableManager(
+      $_db,
+      $_db.beatmapNotes,
+    ).filter((f) => f.beatmapId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_beatmapNotesRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$BeatmapsTableFilterComposer
+    extends Composer<_$AppDatabase, $BeatmapsTable> {
+  $$BeatmapsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get difficultyName => $composableBuilder(
+    column: $table.difficultyName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get difficultyLevel => $composableBuilder(
+    column: $table.difficultyLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get audioOffsetMs => $composableBuilder(
+    column: $table.audioOffsetMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get baseBpm => $composableBuilder(
+    column: $table.baseBpm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get scrollSpeed => $composableBuilder(
+    column: $table.scrollSpeed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AudioTracksTableFilterComposer get trackId {
+    final $$AudioTracksTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.trackId,
+      referencedTable: $db.audioTracks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AudioTracksTableFilterComposer(
+            $db: $db,
+            $table: $db.audioTracks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> timingPointsRefs(
+    Expression<bool> Function($$TimingPointsTableFilterComposer f) f,
+  ) {
+    final $$TimingPointsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.timingPoints,
+      getReferencedColumn: (t) => t.beatmapId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TimingPointsTableFilterComposer(
+            $db: $db,
+            $table: $db.timingPoints,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> beatmapNotesRefs(
+    Expression<bool> Function($$BeatmapNotesTableFilterComposer f) f,
+  ) {
+    final $$BeatmapNotesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.beatmapNotes,
+      getReferencedColumn: (t) => t.beatmapId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BeatmapNotesTableFilterComposer(
+            $db: $db,
+            $table: $db.beatmapNotes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$BeatmapsTableOrderingComposer
+    extends Composer<_$AppDatabase, $BeatmapsTable> {
+  $$BeatmapsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get difficultyName => $composableBuilder(
+    column: $table.difficultyName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get difficultyLevel => $composableBuilder(
+    column: $table.difficultyLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get audioOffsetMs => $composableBuilder(
+    column: $table.audioOffsetMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get baseBpm => $composableBuilder(
+    column: $table.baseBpm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get scrollSpeed => $composableBuilder(
+    column: $table.scrollSpeed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AudioTracksTableOrderingComposer get trackId {
+    final $$AudioTracksTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.trackId,
+      referencedTable: $db.audioTracks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AudioTracksTableOrderingComposer(
+            $db: $db,
+            $table: $db.audioTracks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BeatmapsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BeatmapsTable> {
+  $$BeatmapsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get difficultyName => $composableBuilder(
+    column: $table.difficultyName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get difficultyLevel => $composableBuilder(
+    column: $table.difficultyLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get audioOffsetMs => $composableBuilder(
+    column: $table.audioOffsetMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get baseBpm =>
+      $composableBuilder(column: $table.baseBpm, builder: (column) => column);
+
+  GeneratedColumn<double> get scrollSpeed => $composableBuilder(
+    column: $table.scrollSpeed,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$AudioTracksTableAnnotationComposer get trackId {
+    final $$AudioTracksTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.trackId,
+      referencedTable: $db.audioTracks,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AudioTracksTableAnnotationComposer(
+            $db: $db,
+            $table: $db.audioTracks,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> timingPointsRefs<T extends Object>(
+    Expression<T> Function($$TimingPointsTableAnnotationComposer a) f,
+  ) {
+    final $$TimingPointsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.timingPoints,
+      getReferencedColumn: (t) => t.beatmapId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TimingPointsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.timingPoints,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> beatmapNotesRefs<T extends Object>(
+    Expression<T> Function($$BeatmapNotesTableAnnotationComposer a) f,
+  ) {
+    final $$BeatmapNotesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.beatmapNotes,
+      getReferencedColumn: (t) => t.beatmapId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BeatmapNotesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.beatmapNotes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$BeatmapsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BeatmapsTable,
+          Beatmap,
+          $$BeatmapsTableFilterComposer,
+          $$BeatmapsTableOrderingComposer,
+          $$BeatmapsTableAnnotationComposer,
+          $$BeatmapsTableCreateCompanionBuilder,
+          $$BeatmapsTableUpdateCompanionBuilder,
+          (Beatmap, $$BeatmapsTableReferences),
+          Beatmap,
+          PrefetchHooks Function({
+            bool trackId,
+            bool timingPointsRefs,
+            bool beatmapNotesRefs,
+          })
+        > {
+  $$BeatmapsTableTableManager(_$AppDatabase db, $BeatmapsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BeatmapsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BeatmapsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BeatmapsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> trackId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> difficultyName = const Value.absent(),
+                Value<int?> difficultyLevel = const Value.absent(),
+                Value<int> audioOffsetMs = const Value.absent(),
+                Value<double> baseBpm = const Value.absent(),
+                Value<double> scrollSpeed = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => BeatmapsCompanion(
+                id: id,
+                trackId: trackId,
+                title: title,
+                difficultyName: difficultyName,
+                difficultyLevel: difficultyLevel,
+                audioOffsetMs: audioOffsetMs,
+                baseBpm: baseBpm,
+                scrollSpeed: scrollSpeed,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int trackId,
+                required String title,
+                required String difficultyName,
+                Value<int?> difficultyLevel = const Value.absent(),
+                Value<int> audioOffsetMs = const Value.absent(),
+                Value<double> baseBpm = const Value.absent(),
+                Value<double> scrollSpeed = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => BeatmapsCompanion.insert(
+                id: id,
+                trackId: trackId,
+                title: title,
+                difficultyName: difficultyName,
+                difficultyLevel: difficultyLevel,
+                audioOffsetMs: audioOffsetMs,
+                baseBpm: baseBpm,
+                scrollSpeed: scrollSpeed,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$BeatmapsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                trackId = false,
+                timingPointsRefs = false,
+                beatmapNotesRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (timingPointsRefs) db.timingPoints,
+                    if (beatmapNotesRefs) db.beatmapNotes,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (trackId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.trackId,
+                                    referencedTable: $$BeatmapsTableReferences
+                                        ._trackIdTable(db),
+                                    referencedColumn: $$BeatmapsTableReferences
+                                        ._trackIdTable(db)
+                                        .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (timingPointsRefs)
+                        await $_getPrefetchedData<
+                          Beatmap,
+                          $BeatmapsTable,
+                          TimingPoint
+                        >(
+                          currentTable: table,
+                          referencedTable: $$BeatmapsTableReferences
+                              ._timingPointsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BeatmapsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).timingPointsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.beatmapId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (beatmapNotesRefs)
+                        await $_getPrefetchedData<
+                          Beatmap,
+                          $BeatmapsTable,
+                          BeatmapNote
+                        >(
+                          currentTable: table,
+                          referencedTable: $$BeatmapsTableReferences
+                              ._beatmapNotesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$BeatmapsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).beatmapNotesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.beatmapId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$BeatmapsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BeatmapsTable,
+      Beatmap,
+      $$BeatmapsTableFilterComposer,
+      $$BeatmapsTableOrderingComposer,
+      $$BeatmapsTableAnnotationComposer,
+      $$BeatmapsTableCreateCompanionBuilder,
+      $$BeatmapsTableUpdateCompanionBuilder,
+      (Beatmap, $$BeatmapsTableReferences),
+      Beatmap,
+      PrefetchHooks Function({
+        bool trackId,
+        bool timingPointsRefs,
+        bool beatmapNotesRefs,
+      })
+    >;
+typedef $$TimingPointsTableCreateCompanionBuilder =
+    TimingPointsCompanion Function({
+      Value<int> id,
+      required int beatmapId,
+      required int timeMs,
+      required double bpm,
+      Value<int> meter,
+      Value<bool> inherited,
+    });
+typedef $$TimingPointsTableUpdateCompanionBuilder =
+    TimingPointsCompanion Function({
+      Value<int> id,
+      Value<int> beatmapId,
+      Value<int> timeMs,
+      Value<double> bpm,
+      Value<int> meter,
+      Value<bool> inherited,
+    });
+
+final class $$TimingPointsTableReferences
+    extends BaseReferences<_$AppDatabase, $TimingPointsTable, TimingPoint> {
+  $$TimingPointsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $BeatmapsTable _beatmapIdTable(_$AppDatabase db) =>
+      db.beatmaps.createAlias(
+        $_aliasNameGenerator(db.timingPoints.beatmapId, db.beatmaps.id),
+      );
+
+  $$BeatmapsTableProcessedTableManager get beatmapId {
+    final $_column = $_itemColumn<int>('beatmap_id')!;
+
+    final manager = $$BeatmapsTableTableManager(
+      $_db,
+      $_db.beatmaps,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_beatmapIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$TimingPointsTableFilterComposer
+    extends Composer<_$AppDatabase, $TimingPointsTable> {
+  $$TimingPointsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get timeMs => $composableBuilder(
+    column: $table.timeMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get bpm => $composableBuilder(
+    column: $table.bpm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get meter => $composableBuilder(
+    column: $table.meter,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get inherited => $composableBuilder(
+    column: $table.inherited,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BeatmapsTableFilterComposer get beatmapId {
+    final $$BeatmapsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.beatmapId,
+      referencedTable: $db.beatmaps,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BeatmapsTableFilterComposer(
+            $db: $db,
+            $table: $db.beatmaps,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TimingPointsTableOrderingComposer
+    extends Composer<_$AppDatabase, $TimingPointsTable> {
+  $$TimingPointsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get timeMs => $composableBuilder(
+    column: $table.timeMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get bpm => $composableBuilder(
+    column: $table.bpm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get meter => $composableBuilder(
+    column: $table.meter,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get inherited => $composableBuilder(
+    column: $table.inherited,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BeatmapsTableOrderingComposer get beatmapId {
+    final $$BeatmapsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.beatmapId,
+      referencedTable: $db.beatmaps,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BeatmapsTableOrderingComposer(
+            $db: $db,
+            $table: $db.beatmaps,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TimingPointsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TimingPointsTable> {
+  $$TimingPointsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get timeMs =>
+      $composableBuilder(column: $table.timeMs, builder: (column) => column);
+
+  GeneratedColumn<double> get bpm =>
+      $composableBuilder(column: $table.bpm, builder: (column) => column);
+
+  GeneratedColumn<int> get meter =>
+      $composableBuilder(column: $table.meter, builder: (column) => column);
+
+  GeneratedColumn<bool> get inherited =>
+      $composableBuilder(column: $table.inherited, builder: (column) => column);
+
+  $$BeatmapsTableAnnotationComposer get beatmapId {
+    final $$BeatmapsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.beatmapId,
+      referencedTable: $db.beatmaps,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BeatmapsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.beatmaps,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TimingPointsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TimingPointsTable,
+          TimingPoint,
+          $$TimingPointsTableFilterComposer,
+          $$TimingPointsTableOrderingComposer,
+          $$TimingPointsTableAnnotationComposer,
+          $$TimingPointsTableCreateCompanionBuilder,
+          $$TimingPointsTableUpdateCompanionBuilder,
+          (TimingPoint, $$TimingPointsTableReferences),
+          TimingPoint,
+          PrefetchHooks Function({bool beatmapId})
+        > {
+  $$TimingPointsTableTableManager(_$AppDatabase db, $TimingPointsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TimingPointsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TimingPointsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TimingPointsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> beatmapId = const Value.absent(),
+                Value<int> timeMs = const Value.absent(),
+                Value<double> bpm = const Value.absent(),
+                Value<int> meter = const Value.absent(),
+                Value<bool> inherited = const Value.absent(),
+              }) => TimingPointsCompanion(
+                id: id,
+                beatmapId: beatmapId,
+                timeMs: timeMs,
+                bpm: bpm,
+                meter: meter,
+                inherited: inherited,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int beatmapId,
+                required int timeMs,
+                required double bpm,
+                Value<int> meter = const Value.absent(),
+                Value<bool> inherited = const Value.absent(),
+              }) => TimingPointsCompanion.insert(
+                id: id,
+                beatmapId: beatmapId,
+                timeMs: timeMs,
+                bpm: bpm,
+                meter: meter,
+                inherited: inherited,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$TimingPointsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({beatmapId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (beatmapId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.beatmapId,
+                                referencedTable: $$TimingPointsTableReferences
+                                    ._beatmapIdTable(db),
+                                referencedColumn: $$TimingPointsTableReferences
+                                    ._beatmapIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$TimingPointsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TimingPointsTable,
+      TimingPoint,
+      $$TimingPointsTableFilterComposer,
+      $$TimingPointsTableOrderingComposer,
+      $$TimingPointsTableAnnotationComposer,
+      $$TimingPointsTableCreateCompanionBuilder,
+      $$TimingPointsTableUpdateCompanionBuilder,
+      (TimingPoint, $$TimingPointsTableReferences),
+      TimingPoint,
+      PrefetchHooks Function({bool beatmapId})
+    >;
+typedef $$BeatmapNotesTableCreateCompanionBuilder =
+    BeatmapNotesCompanion Function({
+      Value<int> id,
+      required int beatmapId,
+      required int timeMs,
+      required int lane,
+      required String type,
+      Value<int?> durationMs,
+      Value<String?> direction,
+      Value<double?> positionX,
+      Value<double?> positionY,
+    });
+typedef $$BeatmapNotesTableUpdateCompanionBuilder =
+    BeatmapNotesCompanion Function({
+      Value<int> id,
+      Value<int> beatmapId,
+      Value<int> timeMs,
+      Value<int> lane,
+      Value<String> type,
+      Value<int?> durationMs,
+      Value<String?> direction,
+      Value<double?> positionX,
+      Value<double?> positionY,
+    });
+
+final class $$BeatmapNotesTableReferences
+    extends BaseReferences<_$AppDatabase, $BeatmapNotesTable, BeatmapNote> {
+  $$BeatmapNotesTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $BeatmapsTable _beatmapIdTable(_$AppDatabase db) =>
+      db.beatmaps.createAlias(
+        $_aliasNameGenerator(db.beatmapNotes.beatmapId, db.beatmaps.id),
+      );
+
+  $$BeatmapsTableProcessedTableManager get beatmapId {
+    final $_column = $_itemColumn<int>('beatmap_id')!;
+
+    final manager = $$BeatmapsTableTableManager(
+      $_db,
+      $_db.beatmaps,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_beatmapIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$BeatmapNotesTableFilterComposer
+    extends Composer<_$AppDatabase, $BeatmapNotesTable> {
+  $$BeatmapNotesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get timeMs => $composableBuilder(
+    column: $table.timeMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get lane => $composableBuilder(
+    column: $table.lane,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get direction => $composableBuilder(
+    column: $table.direction,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get positionX => $composableBuilder(
+    column: $table.positionX,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get positionY => $composableBuilder(
+    column: $table.positionY,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$BeatmapsTableFilterComposer get beatmapId {
+    final $$BeatmapsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.beatmapId,
+      referencedTable: $db.beatmaps,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BeatmapsTableFilterComposer(
+            $db: $db,
+            $table: $db.beatmaps,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BeatmapNotesTableOrderingComposer
+    extends Composer<_$AppDatabase, $BeatmapNotesTable> {
+  $$BeatmapNotesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get timeMs => $composableBuilder(
+    column: $table.timeMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get lane => $composableBuilder(
+    column: $table.lane,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get direction => $composableBuilder(
+    column: $table.direction,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get positionX => $composableBuilder(
+    column: $table.positionX,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get positionY => $composableBuilder(
+    column: $table.positionY,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$BeatmapsTableOrderingComposer get beatmapId {
+    final $$BeatmapsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.beatmapId,
+      referencedTable: $db.beatmaps,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BeatmapsTableOrderingComposer(
+            $db: $db,
+            $table: $db.beatmaps,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BeatmapNotesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BeatmapNotesTable> {
+  $$BeatmapNotesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get timeMs =>
+      $composableBuilder(column: $table.timeMs, builder: (column) => column);
+
+  GeneratedColumn<int> get lane =>
+      $composableBuilder(column: $table.lane, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<int> get durationMs => $composableBuilder(
+    column: $table.durationMs,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get direction =>
+      $composableBuilder(column: $table.direction, builder: (column) => column);
+
+  GeneratedColumn<double> get positionX =>
+      $composableBuilder(column: $table.positionX, builder: (column) => column);
+
+  GeneratedColumn<double> get positionY =>
+      $composableBuilder(column: $table.positionY, builder: (column) => column);
+
+  $$BeatmapsTableAnnotationComposer get beatmapId {
+    final $$BeatmapsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.beatmapId,
+      referencedTable: $db.beatmaps,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$BeatmapsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.beatmaps,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$BeatmapNotesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BeatmapNotesTable,
+          BeatmapNote,
+          $$BeatmapNotesTableFilterComposer,
+          $$BeatmapNotesTableOrderingComposer,
+          $$BeatmapNotesTableAnnotationComposer,
+          $$BeatmapNotesTableCreateCompanionBuilder,
+          $$BeatmapNotesTableUpdateCompanionBuilder,
+          (BeatmapNote, $$BeatmapNotesTableReferences),
+          BeatmapNote,
+          PrefetchHooks Function({bool beatmapId})
+        > {
+  $$BeatmapNotesTableTableManager(_$AppDatabase db, $BeatmapNotesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BeatmapNotesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BeatmapNotesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BeatmapNotesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> beatmapId = const Value.absent(),
+                Value<int> timeMs = const Value.absent(),
+                Value<int> lane = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<int?> durationMs = const Value.absent(),
+                Value<String?> direction = const Value.absent(),
+                Value<double?> positionX = const Value.absent(),
+                Value<double?> positionY = const Value.absent(),
+              }) => BeatmapNotesCompanion(
+                id: id,
+                beatmapId: beatmapId,
+                timeMs: timeMs,
+                lane: lane,
+                type: type,
+                durationMs: durationMs,
+                direction: direction,
+                positionX: positionX,
+                positionY: positionY,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int beatmapId,
+                required int timeMs,
+                required int lane,
+                required String type,
+                Value<int?> durationMs = const Value.absent(),
+                Value<String?> direction = const Value.absent(),
+                Value<double?> positionX = const Value.absent(),
+                Value<double?> positionY = const Value.absent(),
+              }) => BeatmapNotesCompanion.insert(
+                id: id,
+                beatmapId: beatmapId,
+                timeMs: timeMs,
+                lane: lane,
+                type: type,
+                durationMs: durationMs,
+                direction: direction,
+                positionX: positionX,
+                positionY: positionY,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$BeatmapNotesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({beatmapId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (beatmapId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.beatmapId,
+                                referencedTable: $$BeatmapNotesTableReferences
+                                    ._beatmapIdTable(db),
+                                referencedColumn: $$BeatmapNotesTableReferences
+                                    ._beatmapIdTable(db)
+                                    .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$BeatmapNotesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BeatmapNotesTable,
+      BeatmapNote,
+      $$BeatmapNotesTableFilterComposer,
+      $$BeatmapNotesTableOrderingComposer,
+      $$BeatmapNotesTableAnnotationComposer,
+      $$BeatmapNotesTableCreateCompanionBuilder,
+      $$BeatmapNotesTableUpdateCompanionBuilder,
+      (BeatmapNote, $$BeatmapNotesTableReferences),
+      BeatmapNote,
+      PrefetchHooks Function({bool beatmapId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2675,4 +5924,10 @@ class $AppDatabaseManager {
       $$TrackCategoryLinksTableTableManager(_db, _db.trackCategoryLinks);
   $$AudioTrackDataTableTableManager get audioTrackData =>
       $$AudioTrackDataTableTableManager(_db, _db.audioTrackData);
+  $$BeatmapsTableTableManager get beatmaps =>
+      $$BeatmapsTableTableManager(_db, _db.beatmaps);
+  $$TimingPointsTableTableManager get timingPoints =>
+      $$TimingPointsTableTableManager(_db, _db.timingPoints);
+  $$BeatmapNotesTableTableManager get beatmapNotes =>
+      $$BeatmapNotesTableTableManager(_db, _db.beatmapNotes);
 }
