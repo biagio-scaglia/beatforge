@@ -20,7 +20,9 @@ class MiniPlayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final AudioPlayerService playerService = AudioPlayerServiceProvider.of(context);
+    final AudioPlayerService playerService = AudioPlayerServiceProvider.of(
+      context,
+    );
 
     return ValueListenableBuilder(
       valueListenable: playerService.currentTrackNotifier,

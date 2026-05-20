@@ -23,28 +23,36 @@ class BeatmapRepository {
 
   /// Stream reattivo che osserva le beatmap associate a una specifica traccia.
   Stream<List<Beatmap>> watchBeatmapsForTrack(int trackId) {
-    return (_db.select(_db.beatmaps)..where((b) => b.trackId.equals(trackId))).watch();
+    return (_db.select(
+      _db.beatmaps,
+    )..where((b) => b.trackId.equals(trackId))).watch();
   }
 
   /// Recupera le beatmap associate a una specifica traccia.
   Future<List<Beatmap>> getBeatmapsForTrack(int trackId) {
-    return (_db.select(_db.beatmaps)..where((b) => b.trackId.equals(trackId))).get();
+    return (_db.select(
+      _db.beatmaps,
+    )..where((b) => b.trackId.equals(trackId))).get();
   }
 
   /// Recupera i dettagli completi di una singola beatmap (inclusi note e timing points).
   Future<BeatmapWithDetails?> getBeatmapWithDetails(int beatmapId) async {
-    final beatmap = await (_db.select(_db.beatmaps)..where((b) => b.id.equals(beatmapId))).getSingleOrNull();
+    final beatmap = await (_db.select(
+      _db.beatmaps,
+    )..where((b) => b.id.equals(beatmapId))).getSingleOrNull();
     if (beatmap == null) return null;
 
-    final timingPoints = await (_db.select(_db.timingPoints)
-          ..where((tp) => tp.beatmapId.equals(beatmapId))
-          ..orderBy([(t) => OrderingTerm(expression: t.timeMs)]))
-        .get();
+    final timingPoints =
+        await (_db.select(_db.timingPoints)
+              ..where((tp) => tp.beatmapId.equals(beatmapId))
+              ..orderBy([(t) => OrderingTerm(expression: t.timeMs)]))
+            .get();
 
-    final notes = await (_db.select(_db.beatmapNotes)
-          ..where((n) => n.beatmapId.equals(beatmapId))
-          ..orderBy([(t) => OrderingTerm(expression: t.timeMs)]))
-        .get();
+    final notes =
+        await (_db.select(_db.beatmapNotes)
+              ..where((n) => n.beatmapId.equals(beatmapId))
+              ..orderBy([(t) => OrderingTerm(expression: t.timeMs)]))
+            .get();
 
     return BeatmapWithDetails(
       beatmap: beatmap,
@@ -71,8 +79,12 @@ class BeatmapRepository {
   }) async {
     await _db.transaction(() async {
       // Elimina i record esistenti associati a questa beatmap
-      await (_db.delete(_db.timingPoints)..where((tp) => tp.beatmapId.equals(beatmapId))).go();
-      await (_db.delete(_db.beatmapNotes)..where((n) => n.beatmapId.equals(beatmapId))).go();
+      await (_db.delete(
+        _db.timingPoints,
+      )..where((tp) => tp.beatmapId.equals(beatmapId))).go();
+      await (_db.delete(
+        _db.beatmapNotes,
+      )..where((n) => n.beatmapId.equals(beatmapId))).go();
 
       // Inserisce i nuovi timing points
       for (final tp in timingPoints) {
@@ -85,9 +97,8 @@ class BeatmapRepository {
       }
 
       // Aggiorna l'updatedAt della beatmap
-      await (_db.update(_db.beatmaps)..where((b) => b.id.equals(beatmapId))).write(
-        BeatmapsCompanion(updatedAt: Value(DateTime.now())),
-      );
+      await (_db.update(_db.beatmaps)..where((b) => b.id.equals(beatmapId)))
+          .write(BeatmapsCompanion(updatedAt: Value(DateTime.now())));
     });
   }
 }
@@ -103,7 +114,8 @@ class BeatmapRepositoryProvider extends InheritedWidget {
   });
 
   static BeatmapRepository of(BuildContext context) {
-    final provider = context.dependOnInheritedWidgetOfExactType<BeatmapRepositoryProvider>();
+    final provider = context
+        .dependOnInheritedWidgetOfExactType<BeatmapRepositoryProvider>();
     assert(
       provider != null,
       'Nessun BeatmapRepositoryProvider trovato nel context.',

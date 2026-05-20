@@ -81,7 +81,8 @@ class BeatmapNotes extends Table {
   IntColumn get lane => integer()();
   TextColumn get type => text()(); // 'tap', 'hold', 'flick', ecc.
   IntColumn get durationMs => integer().nullable()(); // Durata per hold note
-  TextColumn get direction => text().nullable()(); // Direzione per flick note ('up', 'down', ecc.)
+  TextColumn get direction =>
+      text().nullable()(); // Direzione per flick note ('up', 'down', ecc.)
   RealColumn get positionX => real().nullable()();
   RealColumn get positionY => real().nullable()();
 }

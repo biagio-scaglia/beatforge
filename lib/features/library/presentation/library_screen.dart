@@ -457,10 +457,8 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                           color: activeColor,
                                         ),
                                         tooltip: 'Gestisci Beatmap',
-                                        onPressed: () => _showBeatmapDialog(
-                                          context,
-                                          song,
-                                        ),
+                                        onPressed: () =>
+                                            _showBeatmapDialog(context, song),
                                       ),
                                       IconButton(
                                         icon: const Icon(

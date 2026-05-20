@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' as drift;
 import '../../../data/local/database/app_database.dart';
 import '../../../data/repositories/beatmap_repository.dart';
 import '../../../data/repositories/audio_repository.dart';
+import '../../editor/presentation/beatmap_editor_screen.dart';
 import '../../../shared/services/audio_player_service.dart';
 import '../../../shared/services/audio_player_service_provider.dart';
 import '../../../shared/theme/app_theme.dart';
@@ -65,27 +66,40 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
                           widget.track.displayName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: AppTheme.textSecondary, fontSize: 13),
+                          style: const TextStyle(
+                            color: AppTheme.textSecondary,
+                            fontSize: 13,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, color: AppTheme.textSecondary),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: AppTheme.textSecondary,
+                    ),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
-              const Divider(color: AppTheme.borderSubtle, height: AppTokens.spacingLg),
+              const Divider(
+                color: AppTheme.borderSubtle,
+                height: AppTokens.spacingLg,
+              ),
 
               // Lista Beatmap
               Expanded(
                 child: StreamBuilder<List<Beatmap>>(
-                  stream: beatmapRepository.watchBeatmapsForTrack(widget.track.id),
+                  stream: beatmapRepository.watchBeatmapsForTrack(
+                    widget.track.id,
+                  ),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(
-                        child: CircularProgressIndicator(color: AppTheme.primaryCyan),
+                        child: CircularProgressIndicator(
+                          color: AppTheme.primaryCyan,
+                        ),
                       );
                     }
 
@@ -97,7 +111,8 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
 
                     return ListView.separated(
                       itemCount: beatmaps.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: AppTokens.spacingMd),
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: AppTokens.spacingMd),
                       itemBuilder: (context, index) {
                         final beatmap = beatmaps[index];
                         return _BeatmapRowItem(
@@ -113,8 +128,11 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
                 ),
               ),
 
-              const Divider(color: AppTheme.borderSubtle, height: AppTokens.spacingLg),
-              
+              const Divider(
+                color: AppTheme.borderSubtle,
+                height: AppTokens.spacingLg,
+              ),
+
               // Bottom actions
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -122,7 +140,8 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
                   NeonButton(
                     text: 'Nuova Beatmap',
                     glowColor: AppTheme.secondaryMagenta,
-                    onTap: () => _showCreateBeatmapForm(context, beatmapRepository),
+                    onTap: () =>
+                        _showCreateBeatmapForm(context, beatmapRepository),
                   ),
                 ],
               ),
@@ -138,7 +157,11 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.layers_clear_rounded, size: 48, color: AppTheme.textSecondary),
+          const Icon(
+            Icons.layers_clear_rounded,
+            size: 48,
+            color: AppTheme.textSecondary,
+          ),
           const SizedBox(height: AppTokens.spacingMd),
           const Text(
             'Nessuna Beatmap Associata',
@@ -165,7 +188,10 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
     );
   }
 
-  void _showCreateBeatmapForm(BuildContext context, BeatmapRepository repository) {
+  void _showCreateBeatmapForm(
+    BuildContext context,
+    BeatmapRepository repository,
+  ) {
     final formKey = GlobalKey<FormState>();
     final titleController = TextEditingController(text: 'Mappa Standard');
     final difficultyController = TextEditingController(text: 'Normal');
@@ -180,7 +206,10 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
           backgroundColor: AppTheme.surfaceElevated,
           title: const Text(
             'Nuova Beatmap',
-            style: TextStyle(color: AppTheme.primaryCyan, fontFamily: 'Orbitron'),
+            style: TextStyle(
+              color: AppTheme.primaryCyan,
+              fontFamily: 'Orbitron',
+            ),
           ),
           content: Form(
             key: formKey,
@@ -195,7 +224,8 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
                       labelStyle: TextStyle(color: AppTheme.textSecondary),
                     ),
                     style: const TextStyle(color: AppTheme.textPrimary),
-                    validator: (v) => v == null || v.isEmpty ? 'Campo obbligatorio' : null,
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Campo obbligatorio' : null,
                   ),
                   TextFormField(
                     controller: difficultyController,
@@ -204,7 +234,8 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
                       labelStyle: TextStyle(color: AppTheme.textSecondary),
                     ),
                     style: const TextStyle(color: AppTheme.textPrimary),
-                    validator: (v) => v == null || v.isEmpty ? 'Campo obbligatorio' : null,
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Campo obbligatorio' : null,
                   ),
                   TextFormField(
                     initialValue: '10',
@@ -214,7 +245,8 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
                     ),
                     keyboardType: TextInputType.number,
                     style: const TextStyle(color: AppTheme.textPrimary),
-                    onChanged: (val) => difficultyLevel = int.tryParse(val) ?? 10,
+                    onChanged: (val) =>
+                        difficultyLevel = int.tryParse(val) ?? 10,
                   ),
                   TextFormField(
                     initialValue: '120.0',
@@ -222,7 +254,9 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
                       labelText: 'BPM Base',
                       labelStyle: TextStyle(color: AppTheme.textSecondary),
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     style: const TextStyle(color: AppTheme.textPrimary),
                     onChanged: (val) => baseBpm = double.tryParse(val) ?? 120.0,
                   ),
@@ -232,9 +266,12 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
                       labelText: 'Velocità di Scorrimento (Scroll)',
                       labelStyle: TextStyle(color: AppTheme.textSecondary),
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     style: const TextStyle(color: AppTheme.textPrimary),
-                    onChanged: (val) => scrollSpeed = double.tryParse(val) ?? 1.5,
+                    onChanged: (val) =>
+                        scrollSpeed = double.tryParse(val) ?? 1.5,
                   ),
                 ],
               ),
@@ -243,7 +280,10 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Annulla', style: TextStyle(color: AppTheme.textSecondary)),
+              child: const Text(
+                'Annulla',
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -267,7 +307,10 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
                   }
                 }
               },
-              child: const Text('Crea', style: TextStyle(color: AppTheme.primaryCyan)),
+              child: const Text(
+                'Crea',
+                style: TextStyle(color: AppTheme.primaryCyan),
+              ),
             ),
           ],
         );
@@ -330,13 +373,20 @@ class _BeatmapRowItem extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           'BPM: ${beatmap.baseBpm.toStringAsFixed(1)} | Velocità: ${beatmap.scrollSpeed.toStringAsFixed(1)}',
-                          style: const TextStyle(fontSize: 11, color: AppTheme.textSecondary),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppTheme.textSecondary,
+                          ),
                         ),
                       ],
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
+                    icon: const Icon(
+                      Icons.delete_outline_rounded,
+                      color: Colors.redAccent,
+                      size: 20,
+                    ),
                     tooltip: 'Elimina Beatmap',
                     onPressed: () => _confirmDelete(context),
                   ),
@@ -347,41 +397,107 @@ class _BeatmapRowItem extends StatelessWidget {
               // Statistiche (Timing Points / Note)
               Row(
                 children: [
-                  _buildStatChip(context, Icons.timer_outlined, '$timingCount Timing'),
+                  _buildStatChip(
+                    context,
+                    Icons.timer_outlined,
+                    '$timingCount Timing',
+                  ),
                   const SizedBox(width: 8),
-                  _buildStatChip(context, Icons.music_note_outlined, '$notesCount Note'),
+                  _buildStatChip(
+                    context,
+                    Icons.music_note_outlined,
+                    '$notesCount Note',
+                  ),
                 ],
               ),
               const SizedBox(height: 12),
 
               // Pulsanti azione della beatmap
-              Row(
+              Column(
                 children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.add_circle_outline_rounded, size: 16),
-                      label: const Text('Carica Test Data', style: TextStyle(fontSize: 11)),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.secondaryMagenta,
-                        side: const BorderSide(color: AppTheme.secondaryMagenta),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: const Icon(Icons.edit_rounded, size: 16),
+                      label: const Text(
+                        'APRI EDITOR BEATMAP',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontFamily: 'Orbitron',
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      onPressed: () => _loadTestData(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryCyan.withValues(
+                          alpha: 0.15,
+                        ),
+                        foregroundColor: AppTheme.primaryCyan,
+                        side: const BorderSide(
+                          color: AppTheme.primaryCyan,
+                          width: 1.2,
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                      ),
+                      onPressed: () {
+                        // Chiude prima il dialogo
+                        Navigator.of(context).pop();
+                        // Apre la schermata dell'editor
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (dialogContext) => BeatmapEditorScreen(
+                              beatmap: beatmap,
+                              track: track,
+                            ),
+                          ),
+                        );
+                      },
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.play_circle_outline_rounded, size: 16),
-                      label: const Text('Simula Gameplay', style: TextStyle(fontSize: 11)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryCyan.withValues(alpha: 0.15),
-                        foregroundColor: AppTheme.primaryCyan,
-                        side: const BorderSide(color: AppTheme.primaryCyan),
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(
+                            Icons.add_circle_outline_rounded,
+                            size: 14,
+                          ),
+                          label: const Text(
+                            'Carica Test Data',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.textSecondary,
+                            side: const BorderSide(
+                              color: AppTheme.borderSubtle,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                          onPressed: () => _loadTestData(context),
+                        ),
                       ),
-                      onPressed: () => _startSimulation(context, details),
-                    ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          icon: const Icon(
+                            Icons.play_circle_outline_rounded,
+                            size: 14,
+                          ),
+                          label: const Text(
+                            'Simula Gameplay',
+                            style: TextStyle(fontSize: 10),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppTheme.secondaryMagenta,
+                            side: const BorderSide(
+                              color: AppTheme.secondaryMagenta,
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                          ),
+                          onPressed: () => _startSimulation(context, details),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -404,7 +520,10 @@ class _BeatmapRowItem extends StatelessWidget {
         children: [
           Icon(icon, size: 12, color: AppTheme.textSecondary),
           const SizedBox(width: 4),
-          Text(text, style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary)),
+          Text(
+            text,
+            style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+          ),
         ],
       ),
     );
@@ -417,11 +536,16 @@ class _BeatmapRowItem extends StatelessWidget {
         return AlertDialog(
           backgroundColor: AppTheme.surfaceElevated,
           title: const Text('Rimuovere Beatmap?'),
-          content: Text('Sei sicuro di voler eliminare la beatmap "${beatmap.title}"?'),
+          content: Text(
+            'Sei sicuro di voler eliminare la beatmap "${beatmap.title}"?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Annulla', style: TextStyle(color: AppTheme.textSecondary)),
+              child: const Text(
+                'Annulla',
+                style: TextStyle(color: AppTheme.textSecondary),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -434,7 +558,10 @@ class _BeatmapRowItem extends StatelessWidget {
                   Navigator.of(dialogContext).pop();
                 }
               },
-              child: const Text('Elimina', style: TextStyle(color: Colors.redAccent)),
+              child: const Text(
+                'Elimina',
+                style: TextStyle(color: Colors.redAccent),
+              ),
             ),
           ],
         );
@@ -459,7 +586,9 @@ class _BeatmapRowItem extends StatelessWidget {
       final int lane = i % 4;
       final String type = i % 5 == 4 ? 'hold' : (i % 6 == 5 ? 'flick' : 'tap');
       final int? duration = type == 'hold' ? 500 : null;
-      final String? direction = type == 'flick' ? (lane % 2 == 0 ? 'up' : 'down') : null;
+      final String? direction = type == 'flick'
+          ? (lane % 2 == 0 ? 'up' : 'down')
+          : null;
 
       return BeatmapNotesCompanion.insert(
         beatmapId: beatmap.id,
@@ -541,7 +670,8 @@ class _GameplaySimulationDialog extends StatefulWidget {
   });
 
   @override
-  State<_GameplaySimulationDialog> createState() => _GameplaySimulationDialogState();
+  State<_GameplaySimulationDialog> createState() =>
+      _GameplaySimulationDialogState();
 }
 
 class _GameplaySimulationDialogState extends State<_GameplaySimulationDialog> {
@@ -554,7 +684,7 @@ class _GameplaySimulationDialogState extends State<_GameplaySimulationDialog> {
   void initState() {
     super.initState();
     _log.add('[SIMULATION STARTED] In attesa della riproduzione...');
-    
+
     // Ascolta la posizione del brano
     _subscription = widget.playerService.positionStream.listen((position) {
       if (!mounted) return;
@@ -566,14 +696,19 @@ class _GameplaySimulationDialogState extends State<_GameplaySimulationDialog> {
       for (final note in widget.details.notes) {
         if (note.timeMs <= currentMs && !_triggeredNotes.contains(note.id)) {
           _triggeredNotes.add(note.id);
-          
-          final noteInfo = 'Nota ID:${note.id} [${note.type.toUpperCase()}] al tempo ${note.timeMs}ms - Corsia: ${note.lane}';
-          final detailsStr = note.type == 'hold' 
-              ? ' (Hold Durata: ${note.durationMs}ms)' 
-              : (note.type == 'flick' ? ' (Flick Direzione: ${note.direction})' : '');
-          
+
+          final noteInfo =
+              'Nota ID:${note.id} [${note.type.toUpperCase()}] al tempo ${note.timeMs}ms - Corsia: ${note.lane}';
+          final detailsStr = note.type == 'hold'
+              ? ' (Hold Durata: ${note.durationMs}ms)'
+              : (note.type == 'flick'
+                    ? ' (Flick Direzione: ${note.direction})'
+                    : '');
+
           setState(() {
-            _log.add('[TAP - ${position.inMinutes}:${(position.inSeconds % 60).toString().padLeft(2, '0')}.${(currentMs % 1000).toString().padLeft(3, '0')}] $noteInfo$detailsStr');
+            _log.add(
+              '[TAP - ${position.inMinutes}:${(position.inSeconds % 60).toString().padLeft(2, '0')}.${(currentMs % 1000).toString().padLeft(3, '0')}] $noteInfo$detailsStr',
+            );
           });
           addedAny = true;
         }
@@ -614,10 +749,17 @@ class _GameplaySimulationDialogState extends State<_GameplaySimulationDialog> {
         children: [
           const Text(
             'SIMULATORE NOTE BEATMAP',
-            style: TextStyle(color: AppTheme.secondaryMagenta, fontFamily: 'Orbitron', fontSize: 16),
+            style: TextStyle(
+              color: AppTheme.secondaryMagenta,
+              fontFamily: 'Orbitron',
+              fontSize: 16,
+            ),
           ),
           IconButton(
-            icon: const Icon(Icons.stop_circle_outlined, color: Colors.redAccent),
+            icon: const Icon(
+              Icons.stop_circle_outlined,
+              color: Colors.redAccent,
+            ),
             onPressed: () {
               widget.playerService.stop();
               Navigator.of(context).pop();
@@ -642,16 +784,25 @@ class _GameplaySimulationDialogState extends State<_GameplaySimulationDialog> {
                     borderRadius: BorderRadius.circular(AppTokens.radiusSm),
                     border: Border.all(color: AppTheme.borderSubtle),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Posizione Audio:', style: TextStyle(fontSize: 12, color: AppTheme.textSecondary)),
+                      const Text(
+                        'Posizione Audio:',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                        ),
+                      ),
                       Text(
                         '${pos.inMinutes}:${(pos.inSeconds % 60).toString().padLeft(2, '0')}.${(ms % 1000).toString().padLeft(3, '0')} (${ms}ms)',
                         style: const TextStyle(
-                          fontSize: 12, 
-                          fontWeight: FontWeight.bold, 
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
                           color: AppTheme.primaryCyan,
                           fontFamily: 'Consolas',
                         ),
@@ -662,7 +813,7 @@ class _GameplaySimulationDialogState extends State<_GameplaySimulationDialog> {
               },
             ),
             const SizedBox(height: AppTokens.spacingMd),
-            
+
             // Console dei log di gameplay
             Expanded(
               child: Container(
@@ -683,7 +834,7 @@ class _GameplaySimulationDialogState extends State<_GameplaySimulationDialog> {
                     } else if (item.contains('TAP')) {
                       textColor = AppTheme.primaryCyan;
                     }
-                    
+
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 2.0),
                       child: Text(
@@ -712,7 +863,10 @@ class _GameplaySimulationDialogState extends State<_GameplaySimulationDialog> {
             widget.playerService.pause();
             Navigator.of(context).pop();
           },
-          child: const Text('Chiudi', style: TextStyle(color: AppTheme.secondaryMagenta)),
+          child: const Text(
+            'Chiudi',
+            style: TextStyle(color: AppTheme.secondaryMagenta),
+          ),
         ),
       ],
     );
