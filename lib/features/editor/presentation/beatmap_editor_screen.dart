@@ -37,10 +37,10 @@ class _BeatmapEditorScreenState extends State<BeatmapEditorScreen> {
   void initState() {
     super.initState();
 
-    // Inizializzazione tardiva del controller recuperando le dipendenze dal context
-    final beatmapRepository = BeatmapRepositoryProvider.of(context);
-    final audioRepository = AudioRepositoryProvider.of(context);
-    final playerService = AudioPlayerServiceProvider.of(context);
+    // Inizializzazione tardiva del controller recuperando le dipendenze dal context senza registrare listener in initState
+    final beatmapRepository = BeatmapRepositoryProvider.of(context, listen: false);
+    final audioRepository = AudioRepositoryProvider.of(context, listen: false);
+    final playerService = AudioPlayerServiceProvider.of(context, listen: false);
 
     _controller = BeatmapEditorController(
       beatmap: widget.beatmap,

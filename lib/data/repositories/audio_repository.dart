@@ -178,9 +178,10 @@ class AudioRepositoryProvider extends InheritedWidget {
     required super.child,
   });
 
-  static AudioRepository of(BuildContext context) {
-    final provider = context
-        .dependOnInheritedWidgetOfExactType<AudioRepositoryProvider>();
+  static AudioRepository of(BuildContext context, {bool listen = true}) {
+    final provider = listen
+        ? context.dependOnInheritedWidgetOfExactType<AudioRepositoryProvider>()
+        : context.getInheritedWidgetOfExactType<AudioRepositoryProvider>();
     assert(
       provider != null,
       'Nessun AudioRepositoryProvider trovato nel context.',
