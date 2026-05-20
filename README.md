@@ -1,8 +1,20 @@
-# BeatForge
+<p align="center">
+  <img src="lib/assets/logo.png" width="140" height="140" alt="BeatForge Logo" />
+</p>
 
-BeatForge è un prototipo di rhythm game locale-first sviluppato in Flutter. Il progetto si distingue per un'interfaccia grafica scura dal forte impatto visivo ispirata all'estetica pop-futuristica e arcade di giochi come *Project DIVA* e *Project Sekai*, senza far uso di asset proprietari. 
+<h1 align="center">BeatForge</h1>
 
-L'obiettivo principale dell'applicazione è consentire agli utenti di importare e organizzare la propria musica locale in modo completamente indipendente, ponendo le basi per un futuro editor e un motore di gioco.
+<p align="center">
+  <strong>Un rhythm game & editor musicale locale-first in chiave dark neon cyberpunk</strong>
+</p>
+
+<p align="center">
+  BeatForge è un prototipo di rhythm game locale-first sviluppato in Flutter. Il progetto si distingue per un'interfaccia grafica scura dal forte impatto visivo ispirata all'estetica pop-futuristica e arcade di giochi come <em>Project DIVA</em> e <em>Project Sekai</em>, senza far uso di asset proprietari.
+</p>
+
+<p align="center">
+  L'obiettivo principale dell'applicazione è consentire agli utenti di importare e organizzare la propria musica locale in modo completamente indipendente, ponendo le basi per un futuro editor e un motore di gioco.
+</p>
 
 ---
 
@@ -37,6 +49,20 @@ Le fondamenta dell'interfaccia utente responsive, del sistema di navigazione, de
 - **Editor Beatmap Interattivo**: Schermata di editing con timeline orizzontale reattiva (disegnata tramite `CustomPainter`), drag-to-seek, zoom regolabile, griglia ritmica (snap) parametrica calcolata sul BPM del brano, pannello di ispezione nota (inserimento/modifica al volo o tramite tap di note TAP, HOLD e FLICK con direzione) e salvataggio atomico su database.
 - **Gestione del File System**: Cancellazione fisica del file audio dal disco su piattaforme native all'eliminazione del brano dalla libreria.
 - **Supporto Web (Chrome)**: Gestione dei limiti di sandboxing del browser tramite archiviazione dei byte in formato BLOB (`AudioTrackData`) e sincronizzazione asincrona.
+
+---
+
+## Identità Visiva & Mascotte
+
+BeatForge integra la mascotte ufficiale **Beat-chan** in composizioni libere e responsive (senza box rigidi, arricchite da auree neon e anelli tridimensionali) per dare carattere e coerenza a splash screen, onboarding, empty states e interfacce principali.
+
+<p align="center">
+  <img src="lib/assets/logo.png" width="100" alt="BeatForge Logo" />
+</p>
+
+| Mascotte Standard | Mascotte Music | Figura Intera | Spritesheet di Animazione |
+| :---: | :---: | :---: | :---: |
+| <img src="lib/assets/beat-chan/beatchan_default.png" width="160" alt="Beat-chan Default" /> | <img src="lib/assets/beat-chan/beatchan_music.png" width="160" alt="Beat-chan Music" /> | <img src="lib/assets/beat-chan/beatchan_full_body.png" width="160" alt="Beat-chan Full Body" /> | <img src="lib/assets/beat-chan/beatchan_sprite.png" width="160" alt="Beat-chan Sprite" /> |
 
 ---
 
