@@ -5,6 +5,7 @@ import '../../library/presentation/library_screen.dart';
 import '../../settings/presentation/settings_screen.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/theme/app_tokens.dart';
+import '../../../shared/theme/app_assets.dart';
 import '../../../shared/widgets/mini_player.dart';
 
 /// L'involucro di navigazione principale dell'applicazione.
@@ -125,10 +126,12 @@ class _AppShellState extends State<AppShell> {
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.multitrack_audio_rounded,
-                            color: AppTheme.primaryCyan,
-                            size: 24,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Image.asset(
+                              AppAssets.logo,
+                              fit: BoxFit.contain,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 8),

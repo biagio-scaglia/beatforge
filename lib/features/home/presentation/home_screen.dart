@@ -159,14 +159,32 @@ class HomeScreen extends StatelessWidget {
         ),
         const SizedBox(width: AppTokens.spacingXl),
 
-        // Colonna Destra: Mascotte in posa musicale a figura libera
-        const Expanded(
-          flex: 4,
+        // Colonna Destra: Mascotte in posa musicale a figura libera affiancata alla dashboard
+        Expanded(
+          flex: 5,
           child: Center(
-            child: BeatChanHeroComposition(
-              size: 320,
-              pose: BeatChanPose.fullBody,
-              isFloating: true,
+            child: SizedBox(
+              width: 420,
+              height: 320,
+              child: Stack(
+                alignment: Alignment.center,
+                clipBehavior: Clip.none,
+                children: const [
+                  // Dashboard di mockup
+                  Positioned(left: 20, top: 40, child: _CyberDashboardMockup()),
+
+                  // Mascotte a figura intera che fluttua ed interagisce a lato
+                  Positioned(
+                    right: 0,
+                    bottom: -10,
+                    child: BeatChanHeroComposition(
+                      size: 230,
+                      pose: BeatChanPose.fullBody,
+                      isFloating: true,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -179,14 +197,6 @@ class HomeScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Mascotte centrale in scala ridotta per preservare lo spazio
-        const BeatChanHeroComposition(
-          size: 200,
-          pose: BeatChanPose.fullBody,
-          isFloating: true,
-        ),
-        const SizedBox(height: AppTokens.spacingLg),
-
         _buildBadge(context),
         const SizedBox(height: AppTokens.spacingSm),
         GlowText(
@@ -209,35 +219,79 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppTokens.spacingMd),
-        Text(
-          'Gestisci la tua collezione musicale in locale ed edita beatmap personalizzate con precisione millesimale.',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppTheme.textSecondary,
-            fontSize: 13,
-            height: 1.5,
+
+        // Pannello informativo compatto con mascotte in posa busto/musica affiancata
+        Container(
+          padding: const EdgeInsets.all(AppTokens.spacingMd),
+          decoration: BoxDecoration(
+            color: AppTheme.surfaceElevated.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.borderSubtle),
+          ),
+          child: Row(
+            children: [
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Rhythm Game Studio',
+                      style: TextStyle(
+                        color: AppTheme.primaryCyan,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Orbitron',
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Gestisci le tue tracce in totale privacy ed edita beatmap personalizzate.',
+                      style: TextStyle(
+                        color: AppTheme.textSecondary,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppTokens.spacingMd),
+              const BeatChanHeroComposition(
+                size: 100,
+                pose: BeatChanPose.music,
+                isFloating: true,
+              ),
+            ],
           ),
         ),
         const SizedBox(height: AppTokens.spacingLg),
-        Wrap(
-          spacing: AppTokens.spacingMd,
-          runSpacing: AppTokens.spacingSm,
-          alignment: WrapAlignment.center,
-          children: [
-            NeonButton(
-              text: 'Apri Libreria',
-              icon: Icons.library_music_rounded,
-              glowColor: AppTheme.primaryCyan,
-              onTap: onNavigateToLibrary,
-            ),
-            NeonButton(
-              text: 'Avvia Sessione',
-              icon: Icons.play_arrow_rounded,
-              glowColor: AppTheme.secondaryMagenta,
-              isSecondary: true,
-              onTap: () => _showNotImplementedSnackBar(context),
-            ),
-          ],
+
+        // Bottoni CTA
+        SizedBox(
+          width: double.infinity,
+          child: Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: NeonButton(
+                  text: 'Apri Libreria',
+                  icon: Icons.library_music_rounded,
+                  glowColor: AppTheme.primaryCyan,
+                  onTap: onNavigateToLibrary,
+                ),
+              ),
+              const SizedBox(height: AppTokens.spacingMd),
+              SizedBox(
+                width: double.infinity,
+                child: NeonButton(
+                  text: 'Avvia Sessione',
+                  icon: Icons.play_arrow_rounded,
+                  glowColor: AppTheme.secondaryMagenta,
+                  isSecondary: true,
+                  onTap: () => _showNotImplementedSnackBar(context),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -279,6 +333,179 @@ class HomeScreen extends StatelessWidget {
             fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Mockup grafico di una dashboard di editing musicale per accompagnare visivamente la mascotte.
+class _CyberDashboardMockup extends StatelessWidget {
+  const _CyberDashboardMockup();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 250,
+      height: 200,
+      padding: const EdgeInsets.all(AppTokens.spacingMd),
+      decoration: BoxDecoration(
+        color: AppTheme.surfaceElevated.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppTheme.primaryCyan.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppTheme.primaryCyan.withValues(alpha: 0.1),
+            blurRadius: 16,
+            spreadRadius: 2,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Barre di intestazione in stile finestra OS
+          Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: Colors.amber,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: Colors.green,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const Spacer(),
+              const Text(
+                'BEATMAP_EDITOR_v1.0',
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 7,
+                  fontFamily: 'Orbitron',
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppTokens.spacingMd),
+
+          // Traccia in esecuzione fittizia
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppTheme.background.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppTheme.borderSubtle),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.music_note,
+                  color: AppTheme.primaryCyan,
+                  size: 14,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text(
+                        'Cybernetic Dreams.mp3',
+                        style: TextStyle(
+                          color: AppTheme.textPrimary,
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        'BPM: 140 • Notes: 248',
+                        style: TextStyle(
+                          color: AppTheme.textSecondary,
+                          fontSize: 7,
+                          fontFamily: 'Orbitron',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppTokens.spacingSm),
+
+          // Barre equalizzatore statiche ma estetiche
+          const Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              _buildWaveBar(18, AppTheme.primaryCyan),
+              _buildWaveBar(35, AppTheme.primaryCyan),
+              _buildWaveBar(55, AppTheme.secondaryMagenta),
+              _buildWaveBar(40, AppTheme.primaryCyan),
+              _buildWaveBar(20, AppTheme.secondaryMagenta),
+              _buildWaveBar(45, AppTheme.primaryCyan),
+              _buildWaveBar(10, AppTheme.primaryCyan),
+            ],
+          ),
+          const Spacer(),
+
+          // Finta barra temporale
+          Row(
+            children: const [
+              Text(
+                '01:14',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 7),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 6.0),
+                  child: LinearProgressIndicator(
+                    value: 0.45,
+                    backgroundColor: AppTheme.borderSubtle,
+                    color: AppTheme.primaryCyan,
+                    minHeight: 2,
+                  ),
+                ),
+              ),
+              Text(
+                '02:40',
+                style: TextStyle(color: AppTheme.textSecondary, fontSize: 7),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWaveBar(double height, Color color) {
+    return Container(
+      width: 3,
+      height: height / 2,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(1.5),
       ),
     );
   }

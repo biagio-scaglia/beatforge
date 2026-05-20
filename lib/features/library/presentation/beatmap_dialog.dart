@@ -11,6 +11,7 @@ import '../../../shared/theme/app_theme.dart';
 import '../../../shared/theme/app_tokens.dart';
 import '../../../shared/widgets/glow_text.dart';
 import '../../../shared/widgets/neon_button.dart';
+import '../../../shared/widgets/beatforge_loader.dart';
 
 /// Un dialogo per visualizzare e gestire le beatmap associate ad una traccia audio.
 /// Permette inoltre di generare dati di test (note e timing points) e simulare la riproduzione in sincrono.
@@ -96,11 +97,7 @@ class _BeatmapDialogState extends State<BeatmapDialog> {
                   ),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
-                        child: CircularProgressIndicator(
-                          color: AppTheme.primaryCyan,
-                        ),
-                      );
+                      return const Center(child: BeatForgeLoader());
                     }
 
                     final beatmaps = snapshot.data ?? [];

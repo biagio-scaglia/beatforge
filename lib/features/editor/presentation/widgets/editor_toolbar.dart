@@ -4,6 +4,7 @@ import '../../../../shared/theme/app_theme.dart';
 import '../../../../shared/theme/app_tokens.dart';
 import '../../../../shared/widgets/glow_text.dart';
 import '../../../../shared/widgets/neon_button.dart';
+import '../../../../shared/widgets/beatforge_loader.dart';
 import '../beatmap_editor_controller.dart';
 
 /// La barra superiore dell'editor.
@@ -147,11 +148,12 @@ class EditorToolbar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               controller.isSaving
                   ? const SizedBox(
-                      width: 24,
+                      width: 32,
                       height: 24,
-                      child: CircularProgressIndicator(
-                        color: AppTheme.primaryCyan,
-                        strokeWidth: 2,
+                      child: BeatForgeLoader(
+                        height: 16,
+                        width: 32,
+                        barWidth: 2,
                       ),
                     )
                   : NeonButton(

@@ -10,6 +10,8 @@ import '../../../shared/widgets/glow_text.dart';
 import '../../../shared/widgets/neon_button.dart';
 import '../../../shared/widgets/neon_list_tile.dart';
 import '../../../shared/widgets/beatchan_artwork.dart';
+import '../../../shared/widgets/beatchan_hero_composition.dart';
+import '../../../shared/widgets/beatforge_loader.dart';
 import 'beatmap_dialog.dart';
 
 /// La schermata per la gestione della libreria musicale dei beatmap locali.
@@ -277,7 +279,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
               return const Center(
                 child: Padding(
                   padding: EdgeInsets.all(AppTokens.spacingLg),
-                  child: CircularProgressIndicator(color: AppTheme.primaryCyan),
+                  child: BeatForgeLoader(),
                 ),
               );
             }
@@ -324,9 +326,7 @@ class _LibraryScreenState extends State<LibraryScreen> {
                           ),
                           const SizedBox(width: AppTokens.spacingMd),
                           if (_isImporting)
-                            const CircularProgressIndicator(
-                              color: AppTheme.primaryCyan,
-                            )
+                            const BeatForgeLoader(height: 30, width: 50)
                           else
                             NeonButton(
                               text: 'Importa MP3',
@@ -514,45 +514,75 @@ class _EmptyLibraryState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 40.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const BeatChanArtwork(
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 600),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final bool isWide = constraints.maxWidth > 500;
+
+            const mascot = BeatChanHeroComposition(
+              size: 180,
               pose: BeatChanPose.music,
-              height: 160,
-              width: 160,
               isFloating: true,
-              hasFrame: true,
-              glowColor: AppTheme.primaryCyan,
-            ),
-            const SizedBox(height: AppTokens.spacingLg),
-            Text(
-              'Nessun brano nella libreria',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: AppTheme.primaryCyan,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: AppTokens.spacingSm),
-            Text(
-              'Importa i tuoi file MP3 locali per iniziare a creare beatmap!',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: AppTokens.spacingLg),
-            if (isImporting)
-              const CircularProgressIndicator(color: AppTheme.primaryCyan)
-            else
-              NeonButton(
-                text: 'Importa il primo MP3',
-                glowColor: AppTheme.primaryCyan,
-                onTap: onImport,
-              ),
-          ],
+            );
+
+            final content = Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: isWide
+                  ? CrossAxisAlignment.start
+                  : CrossAxisAlignment.center,
+              children: [
+                Text(
+                  'Nessun brano nella libreria',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: AppTheme.primaryCyan,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  textAlign: isWide ? TextAlign.left : TextAlign.center,
+                ),
+                const SizedBox(height: AppTokens.spacingSm),
+                Text(
+                  'Importa i tuoi file MP3 locali per iniziare a creare beatmap in modo sicuro, locale e privato.',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppTheme.textSecondary,
+                  ),
+                  textAlign: isWide ? TextAlign.left : TextAlign.center,
+                ),
+                const SizedBox(height: AppTokens.spacingLg),
+                if (isImporting)
+                  const BeatForgeLoader(height: 30, width: 50)
+                else
+                  NeonButton(
+                    text: 'Importa il primo MP3',
+                    glowColor: AppTheme.primaryCyan,
+                    onTap: onImport,
+                  ),
+              ],
+            );
+
+            if (isWide) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  mascot,
+                  const SizedBox(width: AppTokens.spacingLg),
+                  Expanded(child: content),
+                ],
+              );
+            } else {
+              return Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  mascot,
+                  const SizedBox(height: AppTokens.spacingLg),
+                  content,
+                ],
+              );
+            }
+          },
         ),
       ),
     );

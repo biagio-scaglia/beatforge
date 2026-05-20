@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'data/local/database/app_database.dart';
 import 'data/repositories/audio_repository.dart';
 import 'data/repositories/beatmap_repository.dart';
-import 'features/navigation/presentation/app_shell.dart';
+import 'features/splash/presentation/app_startup_wrapper.dart';
 import 'shared/services/audio_player_service.dart';
 import 'shared/services/audio_player_service_provider.dart';
 import 'shared/theme/app_theme.dart';
@@ -34,7 +34,7 @@ void main() {
 ///
 /// Inizializza l'applicazione configurando il titolo globale, disattivando il
 /// banner di debug e impostando il tema personalizzato scuro neon prima di
-/// caricare lo scheletro dell'interfaccia ([AppShell]).
+/// caricare lo scheletro dell'interfaccia ([AppStartupWrapper]).
 class BeatForgeApp extends StatelessWidget {
   const BeatForgeApp({super.key});
 
@@ -44,7 +44,7 @@ class BeatForgeApp extends StatelessWidget {
       title: 'BeatForge',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
-      home: const AppShell(),
+      home: const AppStartupWrapper(),
     );
   }
 }

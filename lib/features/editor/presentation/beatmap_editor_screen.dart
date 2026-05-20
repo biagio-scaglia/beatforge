@@ -6,6 +6,7 @@ import '../../../../data/local/database/app_database.dart';
 import '../../../../data/repositories/beatmap_repository.dart';
 import '../../../../data/repositories/audio_repository.dart';
 import '../../../../shared/services/audio_player_service_provider.dart';
+import '../../../../shared/widgets/beatforge_loader.dart';
 import 'beatmap_editor_controller.dart';
 import 'widgets/editor_timeline.dart';
 import 'widgets/editor_controls.dart';
@@ -89,9 +90,7 @@ class _BeatmapEditorScreenState extends State<BeatmapEditorScreen> {
         body: Consumer<BeatmapEditorController>(
           builder: (context, controller, child) {
             if (controller.isLoading) {
-              return const Center(
-                child: CircularProgressIndicator(color: AppTheme.primaryCyan),
-              );
+              return const Center(child: BeatForgeLoader());
             }
 
             return LayoutBuilder(

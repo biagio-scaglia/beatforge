@@ -1,6 +1,9 @@
 class AppAssets {
   AppAssets._();
 
+  /// Logo ufficiale dell'applicazione
+  static const String logo = 'lib/assets/logo.png';
+
   /// Mascotte principale in posa standard (alta risoluzione, 1024x1024)
   static const String beatchanDefault =
       'lib/assets/beat-chan/beatchan_default.png';

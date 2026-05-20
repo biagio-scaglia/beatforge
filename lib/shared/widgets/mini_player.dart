@@ -5,6 +5,7 @@ import '../services/audio_player_service_provider.dart';
 import '../theme/app_theme.dart';
 import '../theme/app_tokens.dart';
 import 'glow_text.dart';
+import 'beatforge_loader.dart';
 
 /// Mini-player persistente posizionato in fondo allo schermo.
 /// Ascolta lo stato del player globale e mostra i controlli di riproduzione.
@@ -121,11 +122,12 @@ class MiniPlayer extends StatelessWidget {
                         return const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 12.0),
                           child: SizedBox(
-                            width: 24,
+                            width: 32,
                             height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppTheme.primaryCyan,
+                            child: BeatForgeLoader(
+                              height: 16,
+                              width: 32,
+                              barWidth: 2,
                             ),
                           ),
                         );
