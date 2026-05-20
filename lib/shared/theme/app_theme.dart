@@ -19,6 +19,19 @@ class AppTheme {
   static const Color secondaryMagenta = Color(0xFFFF007F);
   static const Color tertiaryYellow = Color(0xFFFFF200);
 
+  // Gradienti a tema cyber-pop
+  static const Gradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [primaryCyan, secondaryMagenta],
+  );
+
+  static const Gradient surfaceGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [surface, surfaceElevated],
+  );
+
   // Colori del testo freddi e leggibili
   static const Color textPrimary = Color(0xFFE2E8F0);
   static const Color textSecondary = Color(0xFF94A3B8);

@@ -13,7 +13,8 @@ class AudioPlayerServiceProvider extends InheritedWidget {
 
   static AudioPlayerService of(BuildContext context, {bool listen = true}) {
     final provider = listen
-        ? context.dependOnInheritedWidgetOfExactType<AudioPlayerServiceProvider>()
+        ? context
+              .dependOnInheritedWidgetOfExactType<AudioPlayerServiceProvider>()
         : context.getInheritedWidgetOfExactType<AudioPlayerServiceProvider>();
     assert(
       provider != null,

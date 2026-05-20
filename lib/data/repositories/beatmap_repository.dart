@@ -115,7 +115,8 @@ class BeatmapRepositoryProvider extends InheritedWidget {
 
   static BeatmapRepository of(BuildContext context, {bool listen = true}) {
     final provider = listen
-        ? context.dependOnInheritedWidgetOfExactType<BeatmapRepositoryProvider>()
+        ? context
+              .dependOnInheritedWidgetOfExactType<BeatmapRepositoryProvider>()
         : context.getInheritedWidgetOfExactType<BeatmapRepositoryProvider>();
     assert(
       provider != null,

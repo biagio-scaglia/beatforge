@@ -9,6 +9,7 @@ import '../../../shared/theme/app_tokens.dart';
 import '../../../shared/widgets/glow_text.dart';
 import '../../../shared/widgets/neon_button.dart';
 import '../../../shared/widgets/neon_list_tile.dart';
+import '../../../shared/widgets/beatchan_artwork.dart';
 import 'beatmap_dialog.dart';
 
 /// La schermata per la gestione della libreria musicale dei beatmap locali.
@@ -518,21 +519,25 @@ class _EmptyLibraryState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
-              Icons.music_off_rounded,
-              size: 64,
-              color: AppTheme.textSecondary,
+            const BeatChanArtwork(
+              pose: BeatChanPose.music,
+              height: 160,
+              width: 160,
+              isFloating: true,
+              hasFrame: true,
+              glowColor: AppTheme.primaryCyan,
             ),
-            const SizedBox(height: AppTokens.spacingMd),
+            const SizedBox(height: AppTokens.spacingLg),
             Text(
               'Nessun brano nella libreria',
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(color: AppTheme.textSecondary),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: AppTheme.primaryCyan,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: AppTokens.spacingSm),
             Text(
-              'Importa i tuoi file MP3 locali per iniziare a suonare!',
+              'Importa i tuoi file MP3 locali per iniziare a creare beatmap!',
               style: Theme.of(
                 context,
               ).textTheme.bodyMedium?.copyWith(color: AppTheme.textSecondary),
