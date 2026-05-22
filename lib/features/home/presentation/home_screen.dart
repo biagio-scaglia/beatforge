@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import '../../../shared/theme/app_theme.dart';
 import '../../../shared/theme/app_tokens.dart';
@@ -298,8 +299,64 @@ class HomeScreen extends StatelessWidget {
 }
 
 /// Mockup grafico di una dashboard di editing musicale per accompagnare visivamente la mascotte.
-class _CyberDashboardMockup extends StatelessWidget {
+/// Le barre dell'equalizzatore sono animate con una sinusoide per un effetto musica vivo.
+class _CyberDashboardMockup extends StatefulWidget {
   const _CyberDashboardMockup();
+
+  @override
+  State<_CyberDashboardMockup> createState() => _CyberDashboardMockupState();
+}
+
+class _CyberDashboardMockupState extends State<_CyberDashboardMockup>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+
+  // Frequenze diverse per ogni barra per un aspetto naturale
+  static const List<double> _barFrequencies = [
+    1.2,
+    0.8,
+    1.5,
+    0.95,
+    1.8,
+    0.7,
+    1.1,
+  ];
+  // Altezze base di ogni barra
+  static const List<double> _barBaseHeights = [
+    18.0,
+    35.0,
+    55.0,
+    40.0,
+    20.0,
+    45.0,
+    10.0,
+  ];
+  // Colori delle barre
+  static const List<Color> _barColors = [
+    AppTheme.primaryCyan,
+    AppTheme.primaryCyan,
+    AppTheme.secondaryMagenta,
+    AppTheme.primaryCyan,
+    AppTheme.secondaryMagenta,
+    AppTheme.primaryCyan,
+    AppTheme.primaryCyan,
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      // Durata lunga: usiamo il valore in [0, 1] come tempo moltiplicato
+      duration: const Duration(seconds: 10),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -412,20 +469,27 @@ class _CyberDashboardMockup extends StatelessWidget {
           ),
           const SizedBox(height: AppTokens.spacingSm),
 
-          // Barre equalizzatore statiche ma estetiche
+          // Barre equalizzatore animate
           const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              _buildWaveBar(18, AppTheme.primaryCyan),
-              _buildWaveBar(35, AppTheme.primaryCyan),
-              _buildWaveBar(55, AppTheme.secondaryMagenta),
-              _buildWaveBar(40, AppTheme.primaryCyan),
-              _buildWaveBar(20, AppTheme.secondaryMagenta),
-              _buildWaveBar(45, AppTheme.primaryCyan),
-              _buildWaveBar(10, AppTheme.primaryCyan),
-            ],
+          AnimatedBuilder(
+            animation: _animController,
+            builder: (context, _) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: List.generate(_barBaseHeights.length, (i) {
+                  // Ogni barra oscilla a frequenza diversa
+                  final t = _animController.value * 2 * pi * 3;
+                  final animatedHeight =
+                      _barBaseHeights[i] *
+                      (0.5 + 0.5 * sin(t * _barFrequencies[i] + i * 0.8));
+                  return _buildWaveBar(
+                    animatedHeight.clamp(4.0, 60.0),
+                    _barColors[i],
+                  );
+                }),
+              );
+            },
           ),
           const Spacer(),
 
@@ -459,12 +523,16 @@ class _CyberDashboardMockup extends StatelessWidget {
   }
 
   Widget _buildWaveBar(double height, Color color) {
-    return Container(
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 16),
       width: 3,
       height: height / 2,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(1.5),
+        boxShadow: [
+          BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 3),
+        ],
       ),
     );
   }

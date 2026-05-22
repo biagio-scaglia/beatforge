@@ -34,25 +34,32 @@ Le fondamenta dell'interfaccia utente responsive, del sistema di navigazione, de
 
 ---
 
-## Feature Attuali
-
-- **UI Adaptable & Responsive**: Shell applicativa con adattamento automatico da `NavigationBar` inferiore (su schermi mobile) a `NavigationRail` laterale (su tablet e desktop).
+## Feature Attua- **UI Adaptable & Responsive**: Shell applicativa con adattamento automatico da `NavigationBar` inferiore (su schermi mobile) a `NavigationRail` laterale (su tablet e desktop).
 - **Stile Dark Neon**: Design dark integrato con bagliori neon, animazioni al tocco/passaggio del mouse ed effetti di transizione curati.
 - **Importazione MP3**: Selezione di file audio locali e caricamento automatico all'interno dell'applicazione.
 - **Riproduzione Audio Locale**: Player audio reale integrato basato su `just_audio`, in grado di caricare brani da file system (su native) e da byte array in database (su web) tramite Object URLs.
 - **Mini-Player Neon Persistente**: Pannello di controllo audio con slider per visualizzazione avanzata e seek temporale, pulsanti play/pause/stop e indicatore del tempo.
-- **Prevenzione Memory Leak**: Revoca automatica dei Blob URL in memoria all'avvio di una nuova traccia o al reset del player su piattaforme web.
 - **Database Locale Drift (SQLite) v2**: Persistenza affidabile per tracce, categorie, collegamenti molti-a-molti, beatmap, timing points (BPM e metriche) e note (tap, hold, flick).
 - **Gestione Categorie**: Seed iniziale di categorie (*Practice*, *Favorites*, *Test*, *Custom*) e possibilità per l'utente di associare o rimuovere tag ai brani tramite dialog interattivo.
-- **Dettagli e Gestione Beatmap**: Dialogo dedicato per aggiungere, visualizzare ed eliminare beatmap personalizzate associate a ciascuna traccia della libreria.
-- **Engine di Gameplay (Flame & Audio Sync)**: Motore di scorrimento note in tempo reale agganciato al clock audio estrapolato al millisecondo. Supporto per note singole (**Tap**), note prolungate (**Hold**) con barra di sustain e timing di rilascio, e note a scorrimento rapido (**Flick**) con frecce direzionali. Timing degli input ad alta fedeltà con finestre di tolleranza regolate in base alla difficoltà della beatmap (Easy, Normal, Hard, Expert).
-- **Gestione Input Avanzata (Multi-touch & Keyboard)**: Gestione nativa del tocco in Flame tramite `TapCallbacks` e `DragCallbacks` per tracciare con precisione swipe multi-touch (flick) e rilasci (hold). Supporto per tastiera fisica con cattura degli eventi di key-down e key-up (tasti D, F, J, K) per il gioco da desktop e web.
-- **Life Gauge Neon (Barra della Vita)**: Barra di energia neon reattiva con gradazione cromatica dinamica. Incremento salute sui tap precisi e detrazione sui Miss, con interruzione del brano (sconfitta) in caso di salute azzerata.
-- **Flusso Partita Completo e Sicuro**: Transizioni con countdown iniziale, overlay di pausa Cyber-Neon, e schermate finali distinte per Vittoria ("STAGE COMPLETATO") e Sconfitta ("STAGE FALLITO") con la mascotte Beat-chan in diverse pose e tabelle di punteggio dettagliate. Integrazione di `PopScope` per intercettare il tasto indietro/home del sistema con finestra di dialogo per confermare l'abbandono senza perdite accidentali di dati.
-- **Impostazioni e Preferenze Locali**: Schermata dedicata divisa in categorie (Gameplay, Audio, Aspetto, Libreria) con controlli Material 3 (`DropdownMenu`, `SegmentedButton`, `Slider`). Supportata da un layer di persistenza robusto (`SharedPreferences`) e un Provider custom per l'aggiornamento reattivo e il salvataggio automatico di offset, volumi e difficoltà predefinita.
-- **Editor Beatmap Interattivo**: Schermata di editing con timeline orizzontale reattiva (disegnata tramite `CustomPainter`), drag-to-seek, zoom regolabile, griglia ritmica (snap) parametrica calcolata sul BPM del brano, pannello di ispezione nota (inserimento/modifica al volo o tramite tap di note TAP, HOLD e FLICK con direzione) e salvataggio atomico su database.
-- **Gestione del File System**: Cancellazione fisica del file audio dal disco su piattaforme native all'eliminazione del brano dalla libreria.
-- **Supporto Web (Chrome)**: Gestione dei limiti di sandboxing del browser tramite archiviazione dei byte in formato BLOB (`AudioTrackData`) e sincronizzazione asincrona.
+- **Editor Beatmap Interattivo**: Timeline orizzontale reattiva (CustomPainter), drag-to-seek, zoom regolabile, griglia ritmica, pannello di ispezione nota e salvataggio atomico su database.
+- **Engine di Gameplay (Flame & Audio Sync)**: Motore di scorrimento note in tempo reale agganciato al clock audio. Supporto per note **Tap**, **Hold** (con barra sustain) e **Flick** (con frecce direzionali). Timing ad alta fedeltà con finestre di tolleranza per difficoltà (Easy, Normal, Hard, Expert).
+- **Effetti Particellari Neon** *(nuovo)*: Sistema particellare Flame integrato nel gameplay. Ad ogni nota colpita vengono spawnate scintille radiali neon (cyan/magenta a seconda della corsia). Le note PERFECT generano un burst più intenso con ring di luce bianca. Nessun impatto significativo sulle performance.
+- **Note Scale-in al Spawn** *(nuovo)*: Le note entrano nel campo di gioco con un'animazione di scale-in (150ms) invece di apparire istantaneamente, migliorando il game feel e la leggibilità.
+- **HUD Migliorato** *(nuovo)*: La barra della vita pulsa di rosso in stato critico (< 25%), il contatore combo usa `AnimatedSwitcher` con transizione elastica, e le milestone combo (10/50/100+) cambiano colore dinamicamente. Il padding superiore dell'HUD è ora calcolato dinamicamente dal `MediaQuery` per rispettare la status bar su tutti i dispositivi.
+- **Dashboard Home Animata** *(nuovo)*: Le barre dell'equalizzatore nella hero section della Home sono ora animate con oscillazione sinusoidale, ciascuna a frequenza diversa, per un effetto musica vivo senza allocazioni per frame.
+- **Libreria con Entrata Staggered** *(nuovo)*: Ogni brano della libreria entra con un lieve slide da destra + fade-in, con delay progressivo basato sull'indice, per una lista che "si costruisce" visivamente.
+- **Gestione Input Avanzata (Multi-touch & Keyboard)**: Gestione nativa del tocco in Flame tramite `TapCallbacks` e `DragCallbacks` per swipe multi-touch (flick) e rilasci (hold). Supporto tastiera fisica (D, F, J, K) per desktop e web.
+- **Life Gauge Neon**: Barra di energia neon reattiva con gradazione cromatica dinamica. Incremento sui tap precisi, detrazione sui Miss, sconfitta al 0%.
+- **Flusso Partita Completo e Sicuro**: Countdown, overlay pausa, schermate Vittoria/Sconfitta con mascotte Beat-chan e tabelle punteggio. `PopScope` per intercettare uscite accidentali.
+- **Impostazioni e Preferenze Locali**: Schermata dedicata con `DropdownMenu`, `SegmentedButton`, `Slider`, persistenza `SharedPreferences`.
+- **Supporto Web (Chrome)**: Gestione BLOB per sandboxing browser, archiviazione bytes in database.
+
+### Limiti attuali
+- L'editor beatmap non sincronizza ancora in tempo reale l'audio con la timeline durante l'editing
+- Il gioco non salva ancora i punteggi nel database locale
+- Le beatmap vanno create manualmente dall'editor; non c'è generazione automatica dal BPM
+
+---
 
 ---
 

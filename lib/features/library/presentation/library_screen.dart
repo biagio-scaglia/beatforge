@@ -413,95 +413,98 @@ class _LibraryScreenState extends State<LibraryScreen> {
                                 ? 'Nessuna Categoria'
                                 : item.categories.map((c) => c.name).join(', ');
 
-                            return ValueListenableBuilder<AudioTrack?>(
-                              valueListenable:
-                                  playerService.currentTrackNotifier,
-                              builder: (context, activeTrack, child) {
-                                final bool isCurrent =
-                                    activeTrack?.id == song.id;
-                                final Color activeColor = isCurrent
-                                    ? AppTheme.primaryCyan
-                                    : (index % 2 == 0
-                                          ? AppTheme.primaryCyan
-                                          : AppTheme.secondaryMagenta);
-
-                                return NeonListTile(
-                                  title: song.displayName,
-                                  subtitle: '$categoriesStr • $sizeMb MB',
-                                  glowColor: activeColor,
-                                  onTap: () {
-                                    playerService.play(song, repository);
-                                  },
-                                  leading: Container(
-                                    width: 48,
-                                    height: 48,
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.surfaceElevated,
-                                      borderRadius: BorderRadius.circular(
-                                        AppTokens.radiusSm,
-                                      ),
-                                      border: Border.all(
-                                        color: isCurrent
+                            return _AnimatedTrackEntry(
+                              index: index,
+                              child: ValueListenableBuilder<AudioTrack?>(
+                                valueListenable:
+                                    playerService.currentTrackNotifier,
+                                builder: (context, activeTrack, child) {
+                                  final bool isCurrent =
+                                      activeTrack?.id == song.id;
+                                  final Color activeColor = isCurrent
+                                      ? AppTheme.primaryCyan
+                                      : (index % 2 == 0
                                             ? AppTheme.primaryCyan
-                                            : AppTheme.borderSubtle,
-                                        width: isCurrent ? 1.5 : 1.0,
+                                            : AppTheme.secondaryMagenta);
+
+                                  return NeonListTile(
+                                    title: song.displayName,
+                                    subtitle: '$categoriesStr • $sizeMb MB',
+                                    glowColor: activeColor,
+                                    onTap: () {
+                                      playerService.play(song, repository);
+                                    },
+                                    leading: Container(
+                                      width: 48,
+                                      height: 48,
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.surfaceElevated,
+                                        borderRadius: BorderRadius.circular(
+                                          AppTokens.radiusSm,
+                                        ),
+                                        border: Border.all(
+                                          color: isCurrent
+                                              ? AppTheme.primaryCyan
+                                              : AppTheme.borderSubtle,
+                                          width: isCurrent ? 1.5 : 1.0,
+                                        ),
+                                        boxShadow: [
+                                          if (isCurrent)
+                                            BoxShadow(
+                                              color: AppTheme.primaryCyan
+                                                  .withValues(alpha: 0.3),
+                                              blurRadius: 6,
+                                            ),
+                                        ],
                                       ),
-                                      boxShadow: [
-                                        if (isCurrent)
-                                          BoxShadow(
-                                            color: AppTheme.primaryCyan
-                                                .withValues(alpha: 0.3),
-                                            blurRadius: 6,
+                                      child: Icon(
+                                        isCurrent
+                                            ? Icons.volume_up_rounded
+                                            : Icons.music_note_rounded,
+                                        color: activeColor,
+                                      ),
+                                    ),
+                                    trailing: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          icon: Icon(
+                                            Icons.layers_outlined,
+                                            color: activeColor,
                                           ),
+                                          tooltip: 'Gestisci Beatmap',
+                                          onPressed: () =>
+                                              _showBeatmapDialog(context, song),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.label_outline_rounded,
+                                            color: AppTheme.textSecondary,
+                                          ),
+                                          tooltip: 'Gestisci categorie',
+                                          onPressed: () => _showCategoryDialog(
+                                            repository,
+                                            item,
+                                            categories,
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.delete_outline_rounded,
+                                            color: Colors.redAccent,
+                                          ),
+                                          tooltip: 'Elimina traccia',
+                                          onPressed: () => _confirmDeleteDialog(
+                                            repository,
+                                            song.id,
+                                            song.displayName,
+                                          ),
+                                        ),
                                       ],
                                     ),
-                                    child: Icon(
-                                      isCurrent
-                                          ? Icons.volume_up_rounded
-                                          : Icons.music_note_rounded,
-                                      color: activeColor,
-                                    ),
-                                  ),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.layers_outlined,
-                                          color: activeColor,
-                                        ),
-                                        tooltip: 'Gestisci Beatmap',
-                                        onPressed: () =>
-                                            _showBeatmapDialog(context, song),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.label_outline_rounded,
-                                          color: AppTheme.textSecondary,
-                                        ),
-                                        tooltip: 'Gestisci categorie',
-                                        onPressed: () => _showCategoryDialog(
-                                          repository,
-                                          item,
-                                          categories,
-                                        ),
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.delete_outline_rounded,
-                                          color: Colors.redAccent,
-                                        ),
-                                        tooltip: 'Elimina traccia',
-                                        onPressed: () => _confirmDeleteDialog(
-                                          repository,
-                                          song.id,
-                                          song.displayName,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
                             );
                           },
                         ),
@@ -598,6 +601,65 @@ class _EmptyLibraryState extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+}
+
+/// Widget per l'animazione di entrata staggered di ogni elemento della libreria.
+/// Ogni brano entra con un lieve slide da destra + fade-in, con un delay
+/// proporzionale al proprio indice nella lista.
+class _AnimatedTrackEntry extends StatefulWidget {
+  final int index;
+  final Widget child;
+
+  const _AnimatedTrackEntry({required this.index, required this.child});
+
+  @override
+  State<_AnimatedTrackEntry> createState() => _AnimatedTrackEntryState();
+}
+
+class _AnimatedTrackEntryState extends State<_AnimatedTrackEntry>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _opacity;
+  late Animation<Offset> _slide;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 350),
+    );
+
+    _opacity = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    _slide = Tween<Offset>(
+      begin: const Offset(0.08, 0.0), // Entra da destra: 8% larghezza
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
+
+    // Delay progressivo basato sull'indice (max 300ms totali)
+    final delayMs = (widget.index * 40).clamp(0, 300);
+    Future.delayed(Duration(milliseconds: delayMs), () {
+      if (mounted) _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: SlideTransition(position: _slide, child: widget.child),
     );
   }
 }

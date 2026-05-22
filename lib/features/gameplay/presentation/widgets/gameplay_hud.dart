@@ -32,6 +32,9 @@ class GameplayHud extends StatelessWidget {
             controller.beatmap?.difficultyName.toUpperCase() ?? 'NORMAL';
         final progress = controller.progress;
 
+        // Padding dinamico per rispettare la status bar del dispositivo
+        final topPadding = MediaQuery.paddingOf(context).top + 4;
+
         return Stack(
           children: [
             // 1. Barra superiore: Info brano, Score, Pausa
@@ -40,8 +43,8 @@ class GameplayHud extends StatelessWidget {
               left: 0,
               right: 0,
               child: Container(
-                padding: const EdgeInsets.only(
-                  top: 24, // Per non coprire la status bar su mobile
+                padding: EdgeInsets.only(
+                  top: topPadding,
                   left: AppTokens.spacingLg,
                   right: AppTokens.spacingLg,
                   bottom: AppTokens.spacingSm,
@@ -145,10 +148,10 @@ class GameplayHud extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 12),
-                    // Barra della vita (Health Gauge / Life Bar)
-                    _buildHealthBar(
-                      controller.healthState.currentHealth,
-                      controller.healthState.maxHealth,
+                    // Barra della vita (Health Gauge / Life Bar) con pulse in critico
+                    _HealthBar(
+                      current: controller.healthState.currentHealth,
+                      max: controller.healthState.maxHealth,
                     ),
                   ],
                 ),
@@ -168,30 +171,24 @@ class GameplayHud extends StatelessWidget {
 
                   const SizedBox(height: AppTokens.spacingSm),
 
-                  // Contatore Combo (appare solo se combo > 0)
-                  if (combo > 0) ...[
-                    GlowText(
-                      '$combo',
-                      glowColor: combo > 50
-                          ? AppTheme.primaryCyan
-                          : AppTheme.secondaryMagenta,
-                      style: const TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.w900,
-                        fontStyle: FontStyle.italic,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    const Text(
-                      'COMBO',
-                      style: TextStyle(
-                        color: AppTheme.textSecondary,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 3.0,
-                      ),
-                    ),
-                  ],
+                  // Contatore Combo con AnimatedSwitcher per transizioni fluide
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    transitionBuilder: (child, animation) {
+                      return ScaleTransition(
+                        scale: Tween<double>(begin: 0.7, end: 1.0).animate(
+                          CurvedAnimation(
+                            parent: animation,
+                            curve: Curves.elasticOut,
+                          ),
+                        ),
+                        child: FadeTransition(opacity: animation, child: child),
+                      );
+                    },
+                    child: combo > 0
+                        ? _ComboDisplay(key: ValueKey<int>(combo), combo: combo)
+                        : const SizedBox.shrink(),
+                  ),
                 ],
               ),
             ),
@@ -234,13 +231,116 @@ class GameplayHud extends StatelessWidget {
       },
     );
   }
+}
 
-  Widget _buildHealthBar(double current, double max) {
-    final double percentage = (current / max).clamp(0.0, 1.0);
+/// Display della combo con colori differenti in base alla grandezza del combo.
+class _ComboDisplay extends StatelessWidget {
+  final int combo;
+
+  const _ComboDisplay({super.key, required this.combo});
+
+  @override
+  Widget build(BuildContext context) {
+    // Milestone combo: cambio colore e intensità
+    final Color comboColor;
+    if (combo >= 100) {
+      comboColor = AppTheme.tertiaryYellow;
+    } else if (combo >= 50) {
+      comboColor = AppTheme.primaryCyan;
+    } else {
+      comboColor = AppTheme.secondaryMagenta;
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GlowText(
+          '$combo',
+          glowColor: comboColor,
+          style: TextStyle(
+            fontSize: combo >= 50 ? 56 : 48,
+            fontWeight: FontWeight.w900,
+            fontStyle: FontStyle.italic,
+            letterSpacing: 1.5,
+            color: comboColor,
+          ),
+        ),
+        Text(
+          'COMBO',
+          style: TextStyle(
+            color: comboColor.withValues(alpha: 0.8),
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 3.0,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Barra della vita con animazione pulsante in stato critico (< 25%).
+class _HealthBar extends StatefulWidget {
+  final double current;
+  final double max;
+
+  const _HealthBar({required this.current, required this.max});
+
+  @override
+  State<_HealthBar> createState() => _HealthBarState();
+}
+
+class _HealthBarState extends State<_HealthBar>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    // Animazione di pulse lenta, ripetuta in loop
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+    _pulseAnimation = Tween<double>(begin: 0.3, end: 0.8).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    _checkAndAnimateCritical();
+  }
+
+  @override
+  void didUpdateWidget(_HealthBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _checkAndAnimateCritical();
+  }
+
+  void _checkAndAnimateCritical() {
+    final percentage = (widget.current / widget.max).clamp(0.0, 1.0);
+    if (percentage <= 0.25) {
+      if (!_pulseController.isAnimating) {
+        _pulseController.repeat(reverse: true);
+      }
+    } else {
+      _pulseController.stop();
+      _pulseController.value = 0.0;
+    }
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final double percentage = (widget.current / widget.max).clamp(0.0, 1.0);
+    final bool isCritical = percentage <= 0.25;
 
     // Sceglie il colore neon in base alla percentuale di energia
     Color healthColor = const Color(0xFF00FF66); // Verde neon (salute alta)
-    if (percentage <= 0.25) {
+    if (isCritical) {
       healthColor = const Color(0xFFEF4444); // Rosso neon (salute critica)
     } else if (percentage <= 0.60) {
       healthColor = const Color(0xFFFFF200); // Giallo neon (salute media)
@@ -263,7 +363,7 @@ class GameplayHud extends StatelessWidget {
               ),
             ),
             Text(
-              '${current.toInt()}%',
+              '${widget.current.toInt()}%',
               style: TextStyle(
                 color: healthColor,
                 fontSize: 10,
@@ -274,18 +374,37 @@ class GameplayHud extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
-        Container(
-          height: 6,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(3),
-            border: Border.all(
-              color: Colors.white.withValues(alpha: 0.1),
-              width: 0.5,
-            ),
-          ),
-          alignment: Alignment.centerLeft,
+        // Wrapper per il glow pulsante in critico
+        AnimatedBuilder(
+          animation: _pulseAnimation,
+          builder: (context, child) {
+            return Container(
+              height: 6,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(3),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 0.5,
+                ),
+                // Glow pulsante attivo solo in critico
+                boxShadow: isCritical
+                    ? [
+                        BoxShadow(
+                          color: healthColor.withValues(
+                            alpha: _pulseAnimation.value,
+                          ),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ]
+                    : null,
+              ),
+              alignment: Alignment.centerLeft,
+              child: child,
+            );
+          },
           child: FractionallySizedBox(
             widthFactor: percentage,
             child: AnimatedContainer(
@@ -381,6 +500,7 @@ class _JudgmentFeedbackState extends State<JudgmentFeedback>
   }
 
   void _showFeedback(String label, Color color) {
+    // Guard: non chiamare setState se il widget è stato smontato
     if (!mounted) return;
     setState(() {
       _currentLabel = label;

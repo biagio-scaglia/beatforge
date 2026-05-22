@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flame/game.dart';
 import 'package:flame/input.dart';
 import 'package:flame/events.dart';
@@ -7,6 +8,7 @@ import '../controllers/gameplay_controller.dart';
 import '../models/gameplay_state.dart';
 import 'lane_component.dart';
 import 'note_component.dart';
+import 'particle_system.dart';
 
 /// Il motore grafico Flame per BeatForge.
 ///
@@ -19,6 +21,9 @@ class BeatForgeGame extends FlameGame
 
   final List<LaneComponent> _lanes = [];
   int _nextNoteSpawnIndex = 0;
+
+  // Subscription allo stream degli eventi di nota colpita per le particelle
+  StreamSubscription? _noteHitSub;
 
   BeatForgeGame({required this.controller});
 
@@ -37,6 +42,51 @@ class BeatForgeGame extends FlameGame
     }
 
     resetSpawner();
+    _subscribeToHitEvents();
+  }
+
+  /// Si iscrive allo stream degli hit per spawnare le particelle neon.
+  void _subscribeToHitEvents() {
+    _noteHitSub?.cancel();
+    _noteHitSub = controller.onNoteHit.listen((event) {
+      // Recupera la posizione della nota colpita dal NoteComponent corrispondente
+      final noteComponents = children.whereType<NoteComponent>();
+      NoteComponent? target;
+      for (final nc in noteComponents) {
+        if (nc.noteModel == event.note) {
+          target = nc;
+          break;
+        }
+      }
+      final hitPosition = target?.position ?? Vector2(size.x / 2, size.y - 120);
+
+      // Scegli colore in base alla corsia
+      final isPerfect = event.judgment.label == 'PERFECT';
+      final isEvenLane = event.note.lane % 2 == 0;
+      final particleColor = isEvenLane
+          ? const Color(0xFF00F2FE) // Cyan neon
+          : const Color(0xFFFF007F); // Magenta neon
+
+      // Spawna burst più intenso per PERFECT, normale per gli altri
+      if (isPerfect) {
+        add(
+          createPerfectBurstParticles(
+            position: hitPosition,
+            color: particleColor,
+          ),
+        );
+      } else {
+        add(createHitParticles(position: hitPosition, color: particleColor));
+      }
+    });
+  }
+
+  @override
+  void onDetach() {
+    // Cancella la subscription quando il gioco viene smontato
+    _noteHitSub?.cancel();
+    _noteHitSub = null;
+    super.onDetach();
   }
 
   /// Resetta l'indice di spawn per il riavvio del brano.

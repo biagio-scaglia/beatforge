@@ -23,6 +23,13 @@ abstract class NoteComponent extends PositionComponent
   late Paint glowPaint;
   late Paint centerPaint;
 
+  // Timer per l'animazione di spawn scale-in (i primi 150ms di vita)
+  double _spawnTimer = 0.0;
+  static const double _spawnDuration = 0.15; // secondi
+
+  // Timer accumulato per il pulse della hold note (evita allocazione DateTime ogni frame)
+  double _holdPulseTimer = 0.0;
+
   NoteComponent._internal({required this.noteModel});
 
   factory NoteComponent({required NoteRuntimeModel noteModel}) {
@@ -66,6 +73,14 @@ abstract class NoteComponent extends PositionComponent
   @override
   void update(double dt) {
     super.update(dt);
+
+    // Avanza il timer di spawn per l'animazione scale-in
+    if (_spawnTimer < _spawnDuration) {
+      _spawnTimer += dt;
+    }
+
+    // Avanza il timer del pulse hold (usato da HoldNoteComponent)
+    _holdPulseTimer += dt;
 
     // Gestione dell'animazione di hit (esplosione)
     if (_isExploding) {
@@ -174,7 +189,12 @@ abstract class NoteComponent extends PositionComponent
       return;
     }
 
-    // Disegno nota standard
+    // Disegno nota standard con scale-in all'inizio della vita
+    final double spawnScale = (_spawnTimer / _spawnDuration).clamp(0.0, 1.0);
+    canvas.save();
+    canvas.translate(center, center);
+    canvas.scale(spawnScale);
+    canvas.translate(-center, -center);
     canvas.drawCircle(Offset(center, center), noteRadius + 4, glowPaint);
     canvas.drawCircle(Offset(center, center), noteRadius, ringPaint);
     canvas.drawCircle(Offset(center, center), noteRadius * 0.4, centerPaint);
@@ -184,6 +204,7 @@ abstract class NoteComponent extends PositionComponent
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
     canvas.drawCircle(Offset(center, center), noteRadius * 0.6, innerRing);
+    canvas.restore();
   }
 }
 
@@ -354,11 +375,12 @@ class HoldNoteComponent extends NoteComponent {
     super.render(canvas);
 
     // 4. Glow animato pulsante se la hold è tenuta attiva
+    // Usa _holdPulseTimer accumulato tramite dt (no DateTime.now() ogni frame)
     if (noteModel.holdStarted &&
         !noteModel.holdCompleted &&
         !noteModel.isMissed) {
       final double pulse =
-          1.0 + 0.15 * ((DateTime.now().millisecondsSinceEpoch % 500) / 500);
+          1.0 + 0.15 * (((_holdPulseTimer * 1000) % 500) / 500);
       final Paint activeGlow = Paint()
         ..color = ringPaint.color.withValues(alpha: 0.4)
         ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15);
